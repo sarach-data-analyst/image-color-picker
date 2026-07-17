@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#2596be" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<title>Image Color Picker · Dashboard Palette</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --line:#e6e8ec; --accent:#2596be; --accent-ink:#0f3f4f;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.45;-webkit-font-smoothing:antialiased}
+  header{position:sticky;top:0;z-index:20;background:rgba(246,247,249,.85);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  .bar{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:15px}
+  .brand .dot{width:18px;height:18px;border-radius:6px;background:conic-gradient(from 210deg,#ef4444,#f59e0b,#10b981,#2596be,#8b5cf6,#ef4444)}
+  .grow{flex:1}
+  .btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);
+       padding:8px 12px;border-radius:10px;font-size:13px;font-weight:550;cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:#cfd3da}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(.96)}
+  .btn.ghost{background:transparent}
+  .btn[hidden]{display:none}
+  main{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .card .hd h2{margin:0;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-weight:650}
+  .card .bd{padding:16px}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  /* image + drop */
+  #stage{position:relative;border:2px dashed var(--line);border-radius:12px;min-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:
+    linear-gradient(45deg,#f0f1f4 25%,transparent 25%),linear-gradient(-45deg,#f0f1f4 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#f0f1f4 75%),linear-gradient(-45deg,transparent 75%,#f0f1f4 75%);
+    background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0}
+  #stage.drag{border-color:var(--accent);background:#eaf6fa}
+  #stage.has-img{cursor:crosshair;border-style:solid}
+  #view{max-width:100%;max-height:70vh;display:block;image-rendering:auto}
+  .empty{color:var(--muted);text-align:center;padding:24px;font-size:14px}
+  .empty kbd{font-family:var(--mono);background:#eef0f3;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:12px}
+  #loupe{position:fixed;width:132px;height:132px;border-radius:50%;pointer-events:none;display:none;z-index:50;
+    box-shadow:0 0 0 4px #fff,0 0 0 5px var(--line),0 10px 30px rgba(0,0,0,.25);overflow:hidden;background:#fff}
+  #loupeCanvas{width:132px;height:132px;display:block}
+  .loupe-label{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:var(--mono);font-size:11px;
+    background:rgba(0,0,0,.6);color:#fff;padding:2px 0}
+
+  /* picked color */
+  .swatch-lg{height:96px;border-radius:12px;border:1px solid rgba(0,0,0,.08);display:flex;align-items:flex-end;justify-content:space-between;padding:10px 12px}
+  .swatch-lg .tag{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:999px;font-weight:600}
+  .fmt{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .fmt:first-child{border-top:0}
+  .fmt .k{font-size:12px;color:var(--muted);font-weight:650}
+  .fmt .v{font-family:var(--mono);font-size:13px;user-select:all;word-break:break-all}
+  .copy{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--ink)}
+  .copy:hover{border-color:#cfd3da}
+  .copy.ok{background:#e7f7ee;border-color:#b7e4c7;color:#177245}
+
+  /* history */
+  .hist{display:flex;gap:6px;flex-wrap:wrap}
+  .hist .h{width:28px;height:28px;border-radius:7px;border:1px solid rgba(0,0,0,.12);cursor:pointer}
+  .hist .h:hover{outline:2px solid var(--accent);outline-offset:1px}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* contrast */
+  .contrast{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ct{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+  .ct .big{font-size:24px;font-weight:700;font-family:var(--mono)}
+  .ct .prev{border-radius:8px;padding:8px;margin-top:8px;font-weight:600}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:6px}
+  .badge.pass{background:#e7f7ee;color:#177245}
+  .badge.aa{background:#fff4e0;color:#8a5a00}
+  .badge.fail{background:#fde8e8;color:#b42318}
+  .reco{margin-top:10px;font-size:13px}
+
+  /* palette */
+  .grp{margin-top:14px}
+  .grp:first-child{margin-top:0}
+  .grp h3{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:650;letter-spacing:.02em;text-transform:uppercase}
+  .ramp{display:flex;gap:6px;flex-wrap:wrap}
+  .sw{flex:1 1 0;min-width:52px;height:56px;border-radius:9px;border:1px solid rgba(0,0,0,.1);cursor:pointer;position:relative;display:flex;align-items:flex-end;justify-content:center;transition:transform .05s}
+  .sw:hover{transform:translateY(-2px)}
+  .sw span{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.9);color:#111;border-radius:5px;padding:1px 4px;margin-bottom:5px;opacity:0;transition:opacity .1s}
+  .sw:hover span,.sw.copied span{opacity:1}
+  .sw.copied span{background:#177245;color:#fff}
+
+  .exp{display:flex;gap:8px;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  footer{max-width:1200px;margin:0 auto;padding:8px 20px 40px;color:var(--muted);font-size:12px}
+  #selftest{font-family:var(--mono);font-size:11px}
+  .disabled{opacity:.45;pointer-events:none}
+  dialog{border:none;border-radius:14px;box-shadow:var(--shadow);padding:0;max-width:520px;width:92vw}
+  dialog::backdrop{background:rgba(16,24,40,.35)}
+  dialog .bd{padding:18px}
+  dialog textarea{width:100%;height:200px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+  dialog h2{margin:0 0 10px;font-size:15px}
+  .field{display:flex;gap:8px}
+  .field input{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><span class="dot"></span> Image Color Picker <span class="muted" style="font-weight:500">· dashboard palette</span></div>
+    <div class="grow"></div>
+    <button class="btn ghost" id="installBtn" hidden>⤓ Install app</button>
+    <button class="btn ghost" id="sampleBtn">Try a sample</button>
+    <label class="btn" for="file">Upload image</label>
+    <input id="file" type="file" accept="image/*" hidden />
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: image + picker -->
+  <section class="card">
+    <div class="hd"><h2>1 · Image</h2>
+      <div class="grow"></div>
+      <button class="btn ghost" id="clearBtn" hidden>Clear</button>
+    </div>
+    <div class="bd">
+      <div id="stage">
+        <div class="empty" id="empty">
+          <p style="font-size:15px;color:var(--ink);font-weight:600;margin:0 0 6px">Paste a screenshot to start</p>
+          <p style="margin:0 0 14px">Press <kbd>⌘</kbd>+<kbd>V</kbd> (or <kbd>Ctrl</kbd>+<kbd>V</kbd>) anywhere on this page.<br>
+          Or drag an image here, use <b>Upload</b>, or paste an image URL below.</p>
+        </div>
+        <canvas id="view" hidden></canvas>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div class="field" style="flex:1">
+          <input id="url" type="text" placeholder="…or paste an image URL and press Enter" />
+        </div>
+      </div>
+      <p class="hint" id="stageHint">Tip on Mac: <b>⌘⌃⇧4</b> copies a screen region to the clipboard, then just paste here. Everything runs in your browser — nothing is uploaded.</p>
+    </div>
+  </section>
+
+  <!-- RIGHT: results -->
+  <section class="card">
+    <div class="hd"><h2>2 · Picked color</h2></div>
+    <div class="bd">
+      <div id="picked" class="disabled">
+        <div class="swatch-lg" id="swatchLg" style="background:#dfe3e8">
+          <span class="tag" id="swatchTag" style="background:#fff;color:#111">#—</span>
+        </div>
+        <div style="margin-top:12px">
+          <div class="fmt"><span class="k">HEX</span><span class="v" id="fx-hex">—</span><button class="copy" data-copy="hex">Copy</button></div>
+          <div class="fmt"><span class="k">RGB</span><span class="v" id="fx-rgb">—</span><button class="copy" data-copy="rgb">Copy</button></div>
+          <div class="fmt"><span class="k">HSL</span><span class="v" id="fx-hsl">—</span><button class="copy" data-copy="hsl">Copy</button></div>
+          <div class="fmt"><span class="k">HSV</span><span class="v" id="fx-hsv">—</span><button class="copy" data-copy="hsv">Copy</button></div>
+          <div class="fmt"><span class="k">CMYK</span><span class="v" id="fx-cmyk">—</span><button class="copy" data-copy="cmyk">Copy</button></div>
+        </div>
+
+        <div class="grp" style="margin-top:16px">
+          <h3>Recent picks</h3>
+          <div class="hist" id="hist"><span class="muted">Picks will appear here.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contrast / text legibility -->
+  <section class="card">
+    <div class="hd"><h2>3 · Contrast &amp; readable text</h2></div>
+    <div class="bd" id="contrastCard">
+      <div class="contrast">
+        <div class="ct">
+          <div class="muted">Black text</div>
+          <div class="big" id="ratioBlack">—</div>
+          <div class="prev" id="prevBlack" style="background:#dfe3e8;color:#000">Text sample</div>
+          <div id="badgeBlack"></div>
+        </div>
+        <div class="ct">
+          <div class="muted">White text</div>
+          <div class="big" id="ratioWhite">—</div>
+          <div class="prev" id="prevWhite" style="background:#dfe3e8;color:#fff">Text sample</div>
+          <div id="badgeWhite"></div>
+        </div>
+      </div>
+      <div class="reco" id="reco"><span class="muted">Pick a color to see which text is readable on it.</span></div>
+    </div>
+  </section>
+
+  <!-- Palette -->
+  <section class="card" style="grid-column:1/-1">
+    <div class="hd"><h2>4 · Palette from this color</h2>
+      <div class="grow"></div>
+      <div class="exp">
+        <button class="btn ghost" data-export="css">Copy CSS</button>
+        <button class="btn ghost" data-export="json">Copy JSON</button>
+        <button class="btn ghost" data-export="powerbi">Power BI theme</button>
+        <button class="btn ghost" data-export="png">Export PNG</button>
+      </div>
+    </div>
+    <div class="bd" id="paletteCard">
+      <div id="palette" class="disabled">
+        <div class="grp"><h3>Complementary (contrast color)</h3><div class="ramp" id="p-comp"></div></div>
+        <div class="grp"><h3>Analogous</h3><div class="ramp" id="p-analog"></div></div>
+        <div class="grp"><h3>Triadic</h3><div class="ramp" id="p-triad"></div></div>
+        <div class="grp"><h3>Split-complementary</h3><div class="ramp" id="p-split"></div></div>
+        <div class="grp"><h3>Monochromatic</h3><div class="ramp" id="p-mono"></div></div>
+        <div class="grp"><h3>Shades → Tints</h3><div class="ramp" id="p-shade"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Runs 100% in your browser — no uploads, no tracking. <span id="selftest"></span>
+</footer>
+
+<div id="loupe"><canvas id="loupeCanvas" width="132" height="132"></canvas><div class="loupe-label" id="loupeLabel">#—</div></div>
+
+<dialog id="exportDlg">
+  <div class="bd">
+    <h2 id="dlgTitle">Export</h2>
+    <textarea id="dlgText" readonly></textarea>
+    <div class="row" style="margin-top:12px;justify-content:flex-end">
+      <button class="btn ghost" id="dlgCopy">Copy to clipboard</button>
+      <button class="btn primary" id="dlgClose">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* =========================================================================
+   color: pure color math (no DOM)
+   ========================================================================= */
+const Color = (() => {
+  const clamp = (n,min,max)=>Math.min(max,Math.max(min,n));
+  const r2 = n => Math.round(n);
+
+  function rgbToHex({r,g,b}){
+    const h = n => r2(clamp(n,0,255)).toString(16).padStart(2,'0');
+    return ('#'+h(r)+h(g)+h(b)).toUpperCase();
+  }
+  function hexToRgb(hex){
+    let s = hex.replace('#','').trim();
+    if(s.length===3) s = s.split('').map(c=>c+c).join('');
+    const n = parseInt(s,16);
+    return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+  }
+  function rgbToHsl({r,g,b}){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+    let h=0, s=0, l=(max+min)/2;
+    if(d){
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      switch(max){
+        case r: h=(g-b)/d+(g<b?6:0); break;
+        case g: h=(b-r)/d+2; break;
+        default: h=(r-g)/d+4;
+      }
+      h*=60;
+    }
+    return {h:r2(h), s:r2(s*100), l:r2(l*100)};
+  }
+  function hslToRgb({h,s,l}){
+    h=(h%360+360)%360; s/=100; l/=100;
+    const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+    let r=0,g=0,b=0;
+    if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;}
+    else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;}
+    return {r:r2((r+m)*255), g:r2((g+m)*255), b:r2((b+m)*255)};
+  }
+  function rgbToHsv({r,g,b}){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+    let h=0; const s=max?d/max:0, v=max;
+    if(d){
+      switch(max){
+        case r: h=(g-b)/d+(g<b?6:0); break;
+        case g: h=(b-r)/d+2; break;
+        default: h=(r-g)/d+4;
+      }
+      h*=60;
+    }
+    return {h:r2(h), s:r2(s*100), v:r2(v*100)};
+  }
+  function rgbToCmyk({r,g,b}){
+    r/=255; g/=255; b/=255;
+    const k=1-Math.max(r,g,b);
+    if(k===1) return {c:0,m:0,y:0,k:100};
+    return {
+      c:r2((1-r-k)/(1-k)*100),
+      m:r2((1-g-k)/(1-k)*100),
+      y:r2((1-b-k)/(1-k)*100),
+      k:r2(k*100)
+    };
+  }
+  // WCAG 2.x
+  function relLuminance({r,g,b}){
+    const f = v => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+    return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+  }
+  function contrastRatio(a,b){
+    const L1=relLuminance(a), L2=relLuminance(b);
+    const hi=Math.max(L1,L2), lo=Math.min(L1,L2);
+    return (hi+0.05)/(lo+0.05);
+  }
+  // harmony helpers (operate in HSL)
+  const rotate = (rgb,deg)=>{const h=rgbToHsl(rgb); return hslToRgb({...h,h:h.h+deg});};
+  function monochromatic(rgb,n=5){
+    const {h,s}=rgbToHsl(rgb);
+    const out=[]; for(let i=0;i<n;i++){ const l=Math.round(88-(76*i/(n-1))); out.push(hslToRgb({h,s,l})); }
+    return out;
+  }
+  function shadesTints(rgb,n=9){
+    // n swatches: darker (mix black) -> base -> lighter (mix white)
+    const half=Math.floor(n/2), out=[];
+    for(let i=-half;i<=half;i++){
+      let c;
+      if(i<0){const t=Math.abs(i)/half; c={r:rgb.r*(1-t),g:rgb.g*(1-t),b:rgb.b*(1-t)};}
+      else if(i>0){const t=i/half; c={r:rgb.r+(255-rgb.r)*t,g:rgb.g+(255-rgb.g)*t,b:rgb.b+(255-rgb.b)*t};}
+      else c={...rgb};
+      out.push({r:r2(c.r),g:r2(c.g),b:r2(c.b)});
+    }
+    return out;
+  }
+  function harmonies(rgb){
+    return {
+      comp:[rgb, rotate(rgb,180)],
+      analog:[rotate(rgb,-30), rgb, rotate(rgb,30)],
+      triad:[rgb, rotate(rgb,120), rotate(rgb,240)],
+      split:[rgb, rotate(rgb,150), rotate(rgb,210)],
+      mono:monochromatic(rgb,5),
+      shade:shadesTints(rgb,9)
+    };
+  }
+  return {rgbToHex,hexToRgb,rgbToHsl,hslToRgb,rgbToHsv,rgbToCmyk,relLuminance,contrastRatio,harmonies,monochromatic,shadesTints};
+})();
+
+/* =========================================================================
+   Self-check (acts as inline tests; logs to console + footer)
+   ========================================================================= */
+(function selfTest(){
+  const C=Color, checks=[];
+  const eq=(a,b,msg)=>checks.push([JSON.stringify(a)===JSON.stringify(b),msg,a,b]);
+  const near=(a,b,tol,msg)=>checks.push([Math.abs(a-b)<=tol,msg,a,b]);
+  eq(C.rgbToHex({r:37,g:150,b:190}),'#2596BE','rgbToHex');
+  eq(C.hexToRgb('#2596be'),{r:37,g:150,b:190},'hexToRgb');
+  eq(C.hexToRgb('#fff'),{r:255,g:255,b:255},'hexToRgb short');
+  near(C.contrastRatio({r:255,g:255,b:255},{r:0,g:0,b:0}),21,0.01,'white/black contrast=21');
+  const rt=C.hslToRgb(C.rgbToHsl({r:37,g:150,b:190}));
+  near(rt.r,37,2,'hsl roundtrip r'); near(rt.g,150,2,'hsl roundtrip g'); near(rt.b,190,2,'hsl roundtrip b');
+  const comp=C.harmonies({r:37,g:150,b:190}).comp[1]; // ~ orange/red opposite
+  checks.push([comp.r>comp.b,'complementary flips warm', comp]);
+  const pass=checks.filter(c=>c[0]).length, total=checks.length;
+  checks.filter(c=>!c[0]).forEach(c=>console.error('SELFTEST FAIL:',c[1],'got',c[2],'want',c[3]));
+  const el=document.getElementById('selftest');
+  el.textContent = `· self-check ${pass}/${total}`;
+  el.style.color = pass===total ? '#177245' : '#b42318';
+  console.log(`[color self-check] ${pass}/${total} passed`);
+})();
+
+/* =========================================================================
+   UI + interaction
+   ========================================================================= */
+const $=s=>document.querySelector(s);
+const view=$('#view'), vctx=view.getContext('2d',{willReadFrequently:true});
+const stage=$('#stage'), empty=$('#empty');
+const loupe=$('#loupe'), lctx=$('#loupeCanvas').getContext('2d');
+let hasImage=false, active=null, history=[];
+
+/* ---- image loading ---- */
+function drawImage(img){
+  view.width=img.naturalWidth||img.width;
+  view.height=img.naturalHeight||img.height;
+  vctx.drawImage(img,0,0);
+  hasImage=true;
+  empty.style.display='none';
+  view.hidden=false;
+  stage.classList.add('has-img');
+  $('#clearBtn').hidden=false;
+}
+function loadFromBlob(blob){
+  const img=new Image();
+  img.onload=()=>{drawImage(img);URL.revokeObjectURL(img.src);};
+  img.onerror=()=>flash('Could not read that image.');
+  img.src=URL.createObjectURL(blob);
+}
+function loadFromURL(url){
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.onload=()=>{ try{ drawImage(img);}catch(e){flash('Loaded, but cross-origin blocks pixel reading (CORS). Try paste/upload.'); } };
+  img.onerror=()=>flash("Couldn't load that URL. It may block hotlinking or CORS — try paste/upload.");
+  img.src=url;
+}
+// paste
+window.addEventListener('paste',e=>{
+  const items=e.clipboardData&&e.clipboardData.items;
+  if(!items) return;
+  for(const it of items){
+    if(it.type&&it.type.indexOf('image')===0){ loadFromBlob(it.getAsFile()); e.preventDefault(); return; }
+  }
+});
+// drag/drop
+['dragenter','dragover'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();stage.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();stage.classList.remove('drag');}));
+stage.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type.indexOf('image')===0)loadFromBlob(f);});
+// upload
+$('#file').addEventListener('change',e=>{const f=e.target.files[0];if(f)loadFromBlob(f);});
+// url
+$('#url').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim())loadFromURL(e.target.value.trim());});
+// clear
+$('#clearBtn').addEventListener('click',()=>{
+  hasImage=false;view.hidden=true;empty.style.display='';stage.classList.remove('has-img');$('#clearBtn').hidden=true;
+});
+// sample
+$('#sampleBtn').addEventListener('click',()=>{
+  const c=document.createElement('canvas');c.width=480;c.height=300;const x=c.getContext('2d');
+  const stops=['#2596be','#8b5cf6','#ef4444','#f59e0b','#10b981'];
+  const g=x.createLinearGradient(0,0,480,300);stops.forEach((s,i)=>g.addColorStop(i/(stops.length-1),s));
+  x.fillStyle=g;x.fillRect(0,0,480,300);
+  x.fillStyle='rgba(255,255,255,.9)';x.font='600 20px sans-serif';x.fillText('Click anywhere to pick a color →',24,40);
+  const img=new Image();img.onload=()=>drawImage(img);img.src=c.toDataURL();
+});
+
+/* ---- pixel picking + loupe ---- */
+function pixelAt(clientX,clientY){
+  const rect=view.getBoundingClientRect();
+  const sx=view.width/rect.width, sy=view.height/rect.height;
+  const x=Math.floor((clientX-rect.left)*sx), y=Math.floor((clientY-rect.top)*sy);
+  if(x<0||y<0||x>=view.width||y>=view.height) return null;
+  const d=vctx.getImageData(x,y,1,1).data;
+  return {x,y,rgb:{r:d[0],g:d[1],b:d[2]}};
+}
+stage.addEventListener('mousemove',e=>{
+  if(!hasImage){loupe.style.display='none';return;}
+  const p=pixelAt(e.clientX,e.clientY);
+  if(!p){loupe.style.display='none';return;}
+  const Z=11, half=Math.floor(Z/2), size=132;
+  lctx.imageSmoothingEnabled=false;
+  lctx.clearRect(0,0,size,size);
+  lctx.drawImage(view, p.x-half, p.y-half, Z, Z, 0,0, size,size);
+  // crosshair
+  const cell=size/Z, c=(half)*cell;
+  lctx.strokeStyle='rgba(0,0,0,.6)';lctx.lineWidth=1;lctx.strokeRect(c,c,cell,cell);
+  lctx.strokeStyle='rgba(255,255,255,.9)';lctx.strokeRect(c-1,c-1,cell+2,cell+2);
+  loupe.style.display='block';
+  loupe.style.left=(e.clientX+18)+'px';
+  loupe.style.top=(e.clientY-150)+'px';
+  $('#loupeLabel').textContent=Color.rgbToHex(p.rgb);
+});
+stage.addEventListener('mouseleave',()=>loupe.style.display='none');
+stage.addEventListener('click',e=>{
+  if(!hasImage)return;
+  const p=pixelAt(e.clientX,e.clientY);
+  if(p)setActive(p.rgb);
+});
+
+/* ---- render picked color ---- */
+function fmtStrings(rgb){
+  const hsl=Color.rgbToHsl(rgb), hsv=Color.rgbToHsv(rgb), cmyk=Color.rgbToCmyk(rgb);
+  return {
+    hex:Color.rgbToHex(rgb),
+    rgb:`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
+    hsl:`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,
+    hsv:`hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`,
+    cmyk:`cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`
+  };
+}
+function setActive(rgb){
+  active=rgb;
+  const f=fmtStrings(rgb), hex=f.hex;
+  $('#picked').classList.remove('disabled');
+  $('#palette').classList.remove('disabled');
+  $('#swatchLg').style.background=hex;
+  const onBlack=Color.contrastRatio(rgb,{r:0,g:0,b:0});
+  const tag=$('#swatchTag'); tag.textContent=hex;
+  const useWhite=Color.contrastRatio(rgb,{r:255,g:255,b:255})>=onBlack;
+  tag.style.background=useWhite?'rgba(0,0,0,.55)':'rgba(255,255,255,.9)';
+  tag.style.color=useWhite?'#fff':'#111';
+  $('#fx-hex').textContent=f.hex; $('#fx-rgb').textContent=f.rgb;
+  $('#fx-hsl').textContent=f.hsl; $('#fx-hsv').textContent=f.hsv; $('#fx-cmyk').textContent=f.cmyk;
+  renderContrast(rgb);
+  renderPalette(rgb);
+  pushHistory(hex);
+}
+function renderContrast(rgb){
+  const hex=Color.rgbToHex(rgb);
+  const black={r:0,g:0,b:0}, white={r:255,g:255,b:255};
+  const rB=Color.contrastRatio(rgb,black), rW=Color.contrastRatio(rgb,white);
+  const badge=(r)=> r>=7?['pass','AAA']: r>=4.5?['pass','AA']: r>=3?['aa','AA Large']:['fail','Fail'];
+  $('#ratioBlack').textContent=rB.toFixed(2); $('#ratioWhite').textContent=rW.toFixed(2);
+  $('#prevBlack').style.background=hex; $('#prevWhite').style.background=hex;
+  const [cB,tB]=badge(rB), [cW,tW]=badge(rW);
+  $('#badgeBlack').innerHTML=`<span class="badge ${cB}">${tB}</span>`;
+  $('#badgeWhite').innerHTML=`<span class="badge ${cW}">${tW}</span>`;
+  const best = rW>rB ? 'white' : 'black';
+  const bestR=Math.max(rW,rB);
+  $('#reco').innerHTML=`On <b>${hex}</b>, use <b>${best}</b> text (contrast ${bestR.toFixed(2)}:1${bestR>=4.5?' ✓ passes AA':bestR>=3?' — large text only':' ✗ low'}).`;
+}
+function swatchEl(rgb){
+  const hex=Color.rgbToHex(rgb);
+  const el=document.createElement('div');
+  el.className='sw'; el.style.background=hex;
+  el.innerHTML=`<span>${hex}</span>`;
+  el.title=`Copy ${hex}`;
+  el.addEventListener('click',()=>{copyText(hex);el.classList.add('copied');setTimeout(()=>el.classList.remove('copied'),700);});
+  return el;
+}
+function fillRamp(id,list){const box=$(id);box.innerHTML='';list.forEach(c=>box.appendChild(swatchEl(c)));}
+function renderPalette(rgb){
+  const h=Color.harmonies(rgb);
+  fillRamp('#p-comp',h.comp); fillRamp('#p-analog',h.analog); fillRamp('#p-triad',h.triad);
+  fillRamp('#p-split',h.split); fillRamp('#p-mono',h.mono); fillRamp('#p-shade',h.shade);
+}
+function pushHistory(hex){
+  if(history[0]===hex)return;
+  history.unshift(hex); history=history.slice(0,12);
+  const box=$('#hist'); box.innerHTML='';
+  history.forEach(hx=>{
+    const d=document.createElement('div');d.className='h';d.style.background=hx;d.title=hx;
+    d.addEventListener('click',()=>setActive(Color.hexToRgb(hx)));
+    box.appendChild(d);
+  });
+}
+
+/* ---- copy ---- */
+async function copyText(t){
+  try{
+    if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);}
+    else throw new Error('fallback');
+  }catch(_){
+    const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+document.querySelectorAll('.copy').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(!active)return;
+    const f=fmtStrings(active); copyText(f[b.dataset.copy]);
+    const t=b.textContent;b.textContent='Copied!';b.classList.add('ok');
+    setTimeout(()=>{b.textContent=t;b.classList.remove('ok');},900);
+  });
+});
+
+/* ---- export ---- */
+function currentPalette(){
+  if(!active)return [];
+  const h=Color.harmonies(active);
+  const seen=new Set(), out=[];
+  [active,...h.comp,...h.analog,...h.triad,...h.split,...h.mono,...h.shade].forEach(c=>{
+    const hex=Color.rgbToHex(c); if(!seen.has(hex)){seen.add(hex);out.push(hex);}
+  });
+  return out;
+}
+function exportCSS(){const p=currentPalette();return ':root{\n'+p.map((h,i)=>`  --color-${i+1}: ${h};`).join('\n')+'\n}';}
+function exportJSON(){return JSON.stringify({base:Color.rgbToHex(active),palette:currentPalette()},null,2);}
+function exportPowerBI(){
+  const p=currentPalette();
+  return JSON.stringify({
+    name:`Palette ${Color.rgbToHex(active)}`,
+    dataColors:p,
+    background:'#FFFFFF', foreground:p[0]||'#2596BE', tableAccent:p[0]||'#2596BE'
+  },null,2);
+}
+function exportPNG(){
+  const p=currentPalette();
+  const sw=120,h=160,pad=0;const c=document.createElement('canvas');
+  c.width=p.length*sw;c.height=h;const x=c.getContext('2d');
+  p.forEach((hex,i)=>{
+    x.fillStyle=hex;x.fillRect(i*sw,0,sw,h);
+    const rgb=Color.hexToRgb(hex);
+    const white=Color.contrastRatio(rgb,{r:255,g:255,b:255})>=Color.contrastRatio(rgb,{r:0,g:0,b:0});
+    x.fillStyle=white?'#fff':'#111';x.font='600 14px monospace';x.textAlign='center';
+    x.fillText(hex,i*sw+sw/2,h-16);
+  });
+  const a=document.createElement('a');a.download='palette.png';a.href=c.toDataURL('image/png');a.click();
+}
+const dlg=$('#exportDlg');
+document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click',()=>{
+  if(!active){flash('Pick a color first.');return;}
+  const kind=b.dataset.export;
+  if(kind==='png'){exportPNG();return;}
+  const map={css:['CSS variables',exportCSS()],json:['JSON',exportJSON()],powerbi:['Power BI theme JSON',exportPowerBI()]};
+  const [title,text]=map[kind];
+  $('#dlgTitle').textContent='Export · '+title;$('#dlgText').value=text;
+  dlg.showModal();
+}));
+$('#dlgCopy').addEventListener('click',()=>{copyText($('#dlgText').value);$('#dlgCopy').textContent='Copied!';setTimeout(()=>$('#dlgCopy').textContent='Copy to clipboard',900);});
+$('#dlgClose').addEventListener('click',()=>dlg.close());
+
+/* ---- tiny toast ---- */
+let toastT;
+function flash(msg){
+  let t=$('#toast');
+  if(!t){t=document.createElement('div');t.id='toast';
+    t.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1f2430;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.25)';
+    document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity='0',2600);
+}
+
+/* =========================================================================
+   pwa: register SW only on secure context; wire install button
+   ========================================================================= */
+if('serviceWorker' in navigator && window.isSecureContext){
+  // isSecureContext is true for https AND http://localhost, false for file:// —
+  // so the offline layer activates when hosted but never throws when opened locally.
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').hidden=false;});
+$('#installBtn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').hidden=true;
+});
+</script>
+</body>
+</html>
