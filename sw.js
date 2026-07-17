@@ -1,6 +1,9 @@
-/* Service worker: precache the app shell so the installed app works offline.
+/* Service worker.
+   - HTML/navigation: NETWORK-FIRST — always show the latest when online,
+     fall back to cache only when offline. (Prevents stale pages after a deploy.)
+   - Other same-origin assets (icons, manifest): stale-while-revalidate.
    Bump CACHE when you change any shell file. */
-const CACHE = 'color-picker-v2';
+const CACHE = 'color-picker-v3';
 const SHELL = [
   './',
   './index.html',
@@ -23,15 +26,35 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  // Never cache user-loaded remote images; let them hit the network.
   const url = new URL(req.url);
-  if (url.origin !== location.origin) return;
-  // Cache-first for the app shell; fall back to network, then cache the response.
+  if (url.origin !== location.origin) return; // never touch user-loaded remote images
+
+  const isHTML = req.mode === 'navigate' ||
+                 req.destination === 'document' ||
+                 url.pathname.endsWith('/') ||
+                 url.pathname.endsWith('.html');
+
+  if (isHTML) {
+    // Network-first: fresh page when online, cached page when offline.
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(req).then(hit => hit || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Assets: serve cached immediately, refresh cache in the background.
   e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-      return res;
-    }).catch(() => caches.match('./index.html')))
+    caches.match(req).then(hit => {
+      const net = fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() => hit);
+      return hit || net;
+    })
   );
 });
