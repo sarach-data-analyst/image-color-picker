@@ -198,7 +198,7 @@
       <div class="exp">
         <button class="btn ghost" data-export="css">Copy CSS</button>
         <button class="btn ghost" data-export="json">Copy JSON</button>
-        <button class="btn ghost" data-export="powerbi">Power BI theme</button>
+        <button class="btn ghost" data-export="theme">Theme JSON</button>
         <button class="btn ghost" data-export="png">Export PNG</button>
       </div>
     </div>
@@ -560,7 +560,9 @@ function currentPalette(){
 }
 function exportCSS(){const p=currentPalette();return ':root{\n'+p.map((h,i)=>`  --color-${i+1}: ${h};`).join('\n')+'\n}';}
 function exportJSON(){return JSON.stringify({base:Color.rgbToHex(active),palette:currentPalette()},null,2);}
-function exportPowerBI(){
+function exportTheme(){
+  // Generic color-theme JSON. `dataColors` is the standard array BI tools
+  // (Power BI, etc.) import; the other keys are optional theme hints.
   const p=currentPalette();
   return JSON.stringify({
     name:`Palette ${Color.rgbToHex(active)}`,
@@ -586,7 +588,7 @@ document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click'
   if(!active){flash('Pick a color first.');return;}
   const kind=b.dataset.export;
   if(kind==='png'){exportPNG();return;}
-  const map={css:['CSS variables',exportCSS()],json:['JSON',exportJSON()],powerbi:['Power BI theme JSON',exportPowerBI()]};
+  const map={css:['CSS variables',exportCSS()],json:['JSON',exportJSON()],theme:['Theme JSON',exportTheme()]};
   const [title,text]=map[kind];
   $('#dlgTitle').textContent='Export · '+title;$('#dlgText').value=text;
   dlg.showModal();

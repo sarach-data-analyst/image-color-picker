@@ -1,6 +1,6 @@
 /* Service worker: precache the app shell so the installed app works offline.
    Bump CACHE when you change any shell file. */
-const CACHE = 'color-picker-v1';
+const CACHE = 'color-picker-v2';
 const SHELL = [
   './',
   './index.html',

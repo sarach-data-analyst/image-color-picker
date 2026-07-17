@@ -11,7 +11,7 @@ Inspired by [imagecolorpicker.com](https://imagecolorpicker.com/), extended for 
 3. Click the page and press **⌘V / Ctrl+V** — the image appears.
 4. Hover to aim with the magnifier loupe, then **click** the pixel.
 5. Copy any format (HEX / RGB / HSL / HSV / CMYK), read which text color is legible on it (WCAG), and grab the harmony swatches.
-6. **Export** the palette as CSS variables, JSON, a **Power BI theme** (`dataColors`), or a PNG strip.
+6. **Export** the palette as CSS variables, JSON, a **Theme JSON** (`dataColors` array — imports into Power BI and other BI tools), or a PNG strip.
 
 Other ways to load an image: drag-and-drop, **Upload image**, or paste an image URL. (URL images from other sites may be blocked from pixel reading by CORS — paste/upload always works.)
 
