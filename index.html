@@ -1222,9 +1222,13 @@ const seen=c=>Color.simulateCVD(c,S.cvd);   // what a CVD viewer would see
 function wcagBadge(rgb){
   // contrast is judged on the REAL colour — a CVD sim must not change the ratio
   const r=Color.contrastRatio(rgb,Color.hexToRgb(S.bg));
-  const cls=r>=7?'pass':r>=4.5?'pass':r>=3?'aa':'fail';
-  const txt=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA+':'✕';
-  return `<i class="wcag ${cls}" title="${r.toFixed(2)}:1 vs ${S.bg}">${txt}</i>`;
+  // 3.0–4.5 passes only for LARGE text — a weaker guarantee than AA, so it must
+  // not be labelled in a way that reads as "better than AA". Same band the Pick
+  // tab calls "AA Large"; abbreviated here because the chip is ~40px on a phone.
+  const cls=r>=4.5?'pass':r>=3?'aa':'fail';
+  const txt=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA-L':'✕';
+  const why=r>=7?'passes AAA':r>=4.5?'passes AA':r>=3?'large text only (AA Large)':'fails AA';
+  return `<i class="wcag ${cls}" title="${r.toFixed(2)}:1 vs ${S.bg} — ${why}">${txt}</i>`;
 }
 function fillStrip(id,list){
   const box=$(id); box.innerHTML='';
