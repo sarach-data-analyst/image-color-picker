@@ -34,7 +34,7 @@
   main{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px}
   @media (max-width:900px){main{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .card .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .card .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .card .hd h2{margin:0;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-weight:650}
   .card .bd{padding:16px}
   .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -106,21 +106,89 @@
   dialog h2{margin:0 0 10px;font-size:15px}
   .field{display:flex;gap:8px}
   .field input{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-family:var(--mono)}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;background:#eceef2;border-radius:10px;padding:3px}
+  .tabs button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;
+    font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(16,24,40,.08)}
+  main[hidden]{display:none}
+
+  /* studio */
+  #view-studio{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:start}
+  /* minmax(0,…) not 1fr: a bare 1fr track is floored by its content's
+     min-width, which lets wide rows push the page sideways on phones */
+  @media (max-width:900px){#view-studio{grid-template-columns:minmax(0,1fr)}}
+  #wheel{width:100%;max-width:340px;aspect-ratio:1;display:block;margin:0 auto;cursor:grab;touch-action:none;border-radius:50%}
+  #wheel.dragging{cursor:grabbing}
+  .ctl{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);font-weight:650}
+  .ctl input[type=range]{width:100%}
+  .ctl select{width:100%;border:1px solid var(--line);border-radius:9px;padding:6px 8px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
+  .anchor-row{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center}
+  .anchor-chip{height:44px;border-radius:10px;border:1px solid rgba(0,0,0,.12)}
+
+  /* palette rows */
+  .prow{margin-top:16px}
+  .prow:first-child{margin-top:0}
+  .prow .phd{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .prow .phd h3{margin:0;font-size:12px;color:var(--muted);font-weight:650;letter-spacing:.02em;text-transform:uppercase}
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .stepper button{appearance:none;border:0;background:var(--card);color:var(--ink);width:24px;height:24px;
+    font-size:14px;line-height:1;cursor:pointer;font-weight:600}
+  .stepper button:hover{background:#eef0f3}
+  .stepper span{min-width:22px;text-align:center;font-family:var(--mono);font-size:12px}
+  .srow{display:flex;gap:6px;flex-wrap:nowrap}
+  .ss{flex:1 1 0;min-width:0;border-radius:9px;border:1px solid rgba(0,0,0,.1);cursor:pointer;
+    height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:5px;transition:transform .05s}
+  .ss:hover{transform:translateY(-2px)}
+  .ss b{font-family:var(--mono);font-size:9px;font-weight:500;background:rgba(255,255,255,.92);color:#111;
+    border-radius:4px;padding:0 3px;opacity:0;transition:opacity .1s}
+  .ss:hover b,.ss.copied b{opacity:1}
+  .ss.copied b{background:#177245;color:#fff}
+  .wcag{font-family:var(--mono);font-size:9px;font-weight:700;border-radius:4px;padding:0 4px;letter-spacing:.02em}
+  .wcag.pass{background:#e7f7ee;color:#177245}
+  .wcag.aa{background:#fff4e0;color:#8a5a00}
+  .wcag.fail{background:#fde8e8;color:#b42318}
+
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{appearance:none;border:0;border-left:1px solid var(--line);background:var(--card);color:var(--muted);
+    font:inherit;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer}
+  .seg button:first-child{border-left:0}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+  /* mini dashboard */
+  #mini{border-radius:12px;padding:14px;transition:background .15s}
+  .mini-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{border-radius:10px;padding:10px 12px;color:#fff}
+  .kpi .lab{font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;font-weight:650}
+  .kpi .val{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1.2}
+  .mini-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .mini-card{border-radius:10px;padding:10px}
+  .mini-card h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:650}
+  .mini-card svg{display:block;width:100%;height:88px;overflow:visible}
+  table.mini-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+  table.mini-tbl th{text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.04em;padding:4px 6px;font-weight:650}
+  table.mini-tbl td{padding:4px 6px;font-family:var(--mono)}
+  table.mini-tbl td.hm{text-align:right;border-radius:4px}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
     <div class="brand"><span class="dot"></span> Image Color Picker <span class="muted" style="font-weight:500">· dashboard palette</span></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-pick" aria-selected="true">Pick</button>
+      <button role="tab" id="tab-studio" aria-selected="false">Studio</button>
+    </div>
     <div class="grow"></div>
     <button class="btn ghost" id="installBtn" hidden>⤓ Install app</button>
-    <button class="btn ghost" id="sampleBtn">Try a sample</button>
-    <label class="btn" for="file">Upload image</label>
+    <button class="btn ghost pick-only" id="sampleBtn">Try a sample</button>
+    <label class="btn pick-only" for="file">Upload image</label>
     <input id="file" type="file" accept="image/*" hidden />
   </div>
 </header>
 
-<main>
+<main id="view-pick">
   <!-- LEFT: image + picker -->
   <section class="card">
     <div class="hd"><h2>1 · Image</h2>
@@ -210,6 +278,108 @@
         <div class="grp"><h3>Split-complementary</h3><div class="ramp" id="p-split"></div></div>
         <div class="grp"><h3>Monochromatic</h3><div class="ramp" id="p-mono"></div></div>
         <div class="grp"><h3>Shades → Tints</h3><div class="ramp" id="p-shade"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================ STUDIO ============================ -->
+<main id="view-studio" hidden>
+  <!-- LEFT: wheel + controls -->
+  <section class="card">
+    <div class="hd"><h2>Color wheel</h2></div>
+    <div class="bd">
+      <canvas id="wheel" width="680" height="680"></canvas>
+      <div class="ctl"><label for="wLight">Lightness</label>
+        <!-- range matches the band the categorical generator actually uses, so
+             every slider position changes the palette (no dead travel) -->
+        <input id="wLight" type="range" min="42" max="82" value="62" /></div>
+      <div class="ctl"><label for="wRule">Rule</label>
+        <select id="wRule">
+          <option value="complementary">Complementary</option>
+          <option value="analogous">Analogous</option>
+          <option value="triadic">Triadic</option>
+          <option value="tetradic">Tetradic</option>
+          <option value="split-complementary">Split-complementary</option>
+        </select></div>
+      <p class="hint">The <b>anchor</b> node is pinned to your picked color. Drag any other node to rotate the
+        harmony set and change its chroma — every palette below updates live.</p>
+      <div class="anchor-row" style="margin-top:14px">
+        <div class="anchor-chip" id="anchorChip"></div>
+        <div class="field"><input id="anchorHex" type="text" spellcheck="false" placeholder="#2596BE" /></div>
+        <button class="btn ghost" id="anchorReset">Reset</button>
+      </div>
+      <p class="hint">Type a HEX to design without a screenshot, or pick one on the <b>Pick</b> tab.</p>
+    </div>
+  </section>
+
+  <!-- RIGHT: palettes + guards -->
+  <section class="card">
+    <div class="hd"><h2>Dashboard palettes</h2>
+      <div class="grow"></div>
+      <div class="exp">
+        <button class="btn ghost" data-sexport="css">Copy CSS</button>
+        <button class="btn ghost" data-sexport="json">Copy JSON</button>
+        <button class="btn ghost" data-sexport="theme">Theme JSON</button>
+        <button class="btn ghost" data-sexport="png">Export PNG</button>
+      </div>
+    </div>
+    <div class="bd">
+      <div class="prow">
+        <div class="phd"><h3>Categorical</h3><div class="grow"></div>
+          <div class="stepper" data-step="cat"><button data-d="-1">−</button><span id="nCat">5</span><button data-d="1">+</button></div></div>
+        <div class="srow" id="s-cat"></div>
+      </div>
+      <div class="prow">
+        <div class="phd"><h3>Sequential</h3><div class="grow"></div>
+          <div class="stepper" data-step="seq"><button data-d="-1">−</button><span id="nSeq">5</span><button data-d="1">+</button></div></div>
+        <div class="srow" id="s-seq"></div>
+      </div>
+      <div class="prow">
+        <div class="phd"><h3>Diverging</h3><div class="grow"></div>
+          <div class="stepper" data-step="div"><button data-d="-1">−</button><span id="nDiv">7</span><button data-d="1">+</button></div></div>
+        <div class="srow" id="s-div"></div>
+      </div>
+
+      <div class="row" style="margin-top:18px;border-top:1px solid var(--line);padding-top:14px">
+        <span class="muted" style="font-weight:650;font-size:12px">Contrast vs</span>
+        <div class="seg" id="bgSeg">
+          <button data-bg="#FFFFFF" aria-pressed="true">White</button>
+          <button data-bg="#1F2430" aria-pressed="false">Dark</button>
+        </div>
+        <div class="grow"></div>
+        <span class="muted" style="font-weight:650;font-size:12px">Colorblind</span>
+        <div class="seg" id="cvdSeg">
+          <button data-cvd="off" aria-pressed="true">Off</button>
+          <button data-cvd="deut" aria-pressed="false">Deut</button>
+          <button data-cvd="prot" aria-pressed="false">Prot</button>
+          <button data-cvd="trit" aria-pressed="false">Trit</button>
+        </div>
+      </div>
+      <p class="hint" id="cvdNote">Badges show the WCAG ratio of each swatch against the chosen background.</p>
+    </div>
+  </section>
+
+  <!-- preview -->
+  <section class="card" style="grid-column:1/-1">
+    <div class="hd"><h2>Live preview</h2>
+      <div class="grow"></div>
+      <span class="muted" style="font-size:12px" id="miniNote">A swatch strip lies about legibility. A dashboard doesn't.</span>
+    </div>
+    <div class="bd">
+      <div id="mini">
+        <div class="mini-kpis">
+          <div class="kpi" id="kpi1"><div class="lab">Revenue</div><div class="val">€1.24M</div></div>
+          <div class="kpi" id="kpi2"><div class="lab">Active users</div><div class="val">8,412</div></div>
+        </div>
+        <div class="mini-charts">
+          <div class="mini-card" id="mcBars"><h4>Revenue by channel</h4><svg id="svgBars" viewBox="0 0 240 88" preserveAspectRatio="none"></svg></div>
+          <div class="mini-card" id="mcLines"><h4>Trend</h4><svg id="svgLines" viewBox="0 0 240 88" preserveAspectRatio="none"></svg></div>
+        </div>
+        <div class="mini-card" id="mcTable" style="margin-top:10px">
+          <h4>Regions · conditional format on the sequential ramp</h4>
+          <table class="mini-tbl" id="miniTbl"></table>
+        </div>
       </div>
     </div>
   </section>
@@ -337,7 +507,197 @@ const Color = (() => {
       shade:shadesTints(rgb,9)
     };
   }
-  return {rgbToHex,hexToRgb,rgbToHsl,hslToRgb,rgbToHsv,rgbToCmyk,relLuminance,contrastRatio,harmonies,monochromatic,shadesTints};
+
+  /* ---------------------------------------------------------------------
+     STUDIO ENGINE — OKLCH, gamut mapping, CVD, dashboard palette generators
+     --------------------------------------------------------------------- */
+
+  // 3x3 matrix helpers (row-major). Deriving matrices at runtime instead of
+  // hand-typing them is deliberate: a mistyped coefficient still "runs".
+  function mv(m,v){return [
+    m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2],
+    m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2],
+    m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2]];}
+  function mm(a,b){const o=[[0,0,0],[0,0,0],[0,0,0]];
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++){let s=0;for(let k=0;k<3;k++)s+=a[i][k]*b[k][j];o[i][j]=s;}
+    return o;}
+  function inv3(m){
+    const [a,b,c]=m[0],[d,e,f]=m[1],[g,h,i]=m[2];
+    const A=e*i-f*h, B=-(d*i-f*g), C=d*h-e*g;
+    const det=a*A+b*B+c*C;
+    return [[A/det,(c*h-b*i)/det,(b*f-c*e)/det],
+            [B/det,(a*i-c*g)/det,(c*d-a*f)/det],
+            [C/det,(b*g-a*h)/det,(a*e-b*d)/det]];
+  }
+  const cross=(u,v)=>[u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+
+  // sRGB transfer function (IEC 61966-2-1)
+  const srgbToLin=v=>v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);
+  const linToSrgb=v=>v<=0.0031308?v*12.92:1.055*Math.pow(v,1/2.4)-0.055;
+
+  // OKLab — constants transcribed from Björn Ottosson's reference implementation:
+  // https://bottosson.github.io/posts/oklab/  (verified by the round-trip and the
+  // known-value check for pure red, L=0.6279 a=0.2249 b=0.1258, in the self-check).
+  function linToOklab([r,g,b]){
+    const l=0.4122214708*r+0.5363325363*g+0.0514459929*b;
+    const m=0.2119034982*r+0.6806995451*g+0.1073969566*b;
+    const s=0.0883024619*r+0.2817188376*g+0.6299787005*b;
+    const l_=Math.cbrt(l), m_=Math.cbrt(m), s_=Math.cbrt(s);
+    return [0.2104542553*l_+0.7936177850*m_-0.0040720468*s_,
+            1.9779984951*l_-2.4285922050*m_+0.4505937099*s_,
+            0.0259040371*l_+0.7827717662*m_-0.8086757660*s_];
+  }
+  function oklabToLin([L,a,b]){
+    const l_=L+0.3963377774*a+0.2158037573*b;
+    const m_=L-0.1055613458*a-0.0638541728*b;
+    const s_=L-0.0894841775*a-1.2914855480*b;
+    const l=l_*l_*l_, m=m_*m_*m_, s=s_*s_*s_;
+    return [ 4.0767416621*l-3.3077115913*m+0.2309699292*s,
+            -1.2684380046*l+2.6097574011*m-0.3413193965*s,
+            -0.0041960863*l-0.7034186147*m+1.7076147010*s];
+  }
+  const D2R=Math.PI/180, R2D=180/Math.PI;
+  function srgbToOklch(rgb){
+    const [L,a,b]=linToOklab([srgbToLin(rgb.r/255),srgbToLin(rgb.g/255),srgbToLin(rgb.b/255)]);
+    let H=Math.atan2(b,a)*R2D; if(H<0)H+=360;
+    return {L, C:Math.hypot(a,b), H};
+  }
+  function oklchToLinRgb({L,C,H}){
+    const h=H*D2R;
+    return oklabToLin([L, C*Math.cos(h), C*Math.sin(h)]);
+  }
+  function inGamut({L,C,H},eps){
+    eps=eps==null?1e-4:eps;
+    return oklchToLinRgb({L,C,H}).every(v=>v>=-eps&&v<=1+eps);
+  }
+  function oklchToSrgb({L,C,H}){
+    const lin=oklchToLinRgb({L,C,H});
+    return {r:r2(clamp(linToSrgb(lin[0]),0,1)*255),
+            g:r2(clamp(linToSrgb(lin[1]),0,1)*255),
+            b:r2(clamp(linToSrgb(lin[2]),0,1)*255)};
+  }
+  // Many L/H pairs have no in-gamut colour at high C — walk C down until it fits.
+  function clampToGamut({L,C,H}){
+    L=clamp(L,0,1);
+    if(inGamut({L,C,H})) return {L,C,H};
+    let lo=0, hi=C;
+    for(let i=0;i<24;i++){const mid=(lo+hi)/2; if(inGamut({L,C:mid,H})) lo=mid; else hi=mid;}
+    return {L,C:lo,H};
+  }
+
+  /* CVD simulation — Viénot, Brettel & Mollon 1999, applied in LINEAR RGB.
+     LMS_FROM_LIN is the Smith & Pokorny (1975) transform as adapted for sRGB
+     displays; see https://daltonlens.org/understanding-cvd-simulation/ .
+     The three simulation matrices are NOT typed in: each is derived here by
+     taking the plane spanned by two primaries and projecting along the missing
+     cone axis, exactly as in the paper. Only one published matrix is trusted. */
+  const LMS_FROM_LIN=[[17.8824,   43.5161,  4.11935],
+                      [ 3.45565,  27.1554,  3.86714],
+                      [ 0.0299566, 0.184309,1.46709]];
+  const LIN_FROM_LMS=inv3(LMS_FROM_LIN);
+  function planeProjection(n,kind){
+    if(kind==='prot') return [[0,-n[1]/n[0],-n[2]/n[0]],[0,1,0],[0,0,1]]; // along L
+    if(kind==='deut') return [[1,0,0],[-n[0]/n[1],0,-n[2]/n[1]],[0,0,1]]; // along M
+    return [[1,0,0],[0,1,0],[-n[0]/n[2],-n[1]/n[2],0]];                   // along S
+  }
+  const CVD_CACHE={};
+  function cvdMatrix(kind){
+    if(CVD_CACHE[kind]) return CVD_CACHE[kind];
+    let n;
+    if(kind==='prot'||kind==='deut'){
+      n=cross(mv(LMS_FROM_LIN,[1,1,0]), mv(LMS_FROM_LIN,[0,0,1])); // yellow × blue
+    }else{
+      n=cross(mv(LMS_FROM_LIN,[0,1,1]), mv(LMS_FROM_LIN,[1,0,0])); // cyan × red
+    }
+    return CVD_CACHE[kind]=mm(LIN_FROM_LMS,mm(planeProjection(n,kind),LMS_FROM_LIN));
+  }
+  function simulateCVD(rgb,kind){
+    if(!kind||kind==='off') return {...rgb};
+    const o=mv(cvdMatrix(kind),[srgbToLin(rgb.r/255),srgbToLin(rgb.g/255),srgbToLin(rgb.b/255)]);
+    return {r:r2(clamp(linToSrgb(clamp(o[0],0,1)),0,1)*255),
+            g:r2(clamp(linToSrgb(clamp(o[1],0,1)),0,1)*255),
+            b:r2(clamp(linToSrgb(clamp(o[2],0,1)),0,1)*255)};
+  }
+
+  /* ---- palette generators (OKLCH, anchored on the picked colour) ---- */
+  const HARMONY={
+    complementary:[0,180],
+    analogous:[0,-30,30],
+    triadic:[0,120,240],
+    tetradic:[0,90,180,270],
+    'split-complementary':[0,150,210]
+  };
+  function harmonyHues(anchorHue,rule){
+    return (HARMONY[rule]||HARMONY.complementary).map(d=>((anchorHue+d)%360+360)%360);
+  }
+  // Fill a hue list up to n by repeatedly splitting the widest gap on the circle,
+  // so extra series land as far as possible from every hue already taken.
+  function spreadHues(base,n){
+    const hues=base.slice(0,n);
+    while(hues.length<n){
+      const s=hues.slice().sort((x,y)=>x-y);
+      let bestGap=-1,bestAt=0;
+      for(let i=0;i<s.length;i++){
+        const a=s[i], b=(i===s.length-1)?s[0]+360:s[i+1];
+        if(b-a>bestGap){bestGap=b-a;bestAt=(a+b)/2;}
+      }
+      hues.push(bestAt%360);
+    }
+    return hues;
+  }
+  function categorical(anchor,n,opt){
+    opt=opt||{};
+    const a=srgbToOklch(anchor);
+    const rot=opt.rotOffset||0, cs=opt.chromaScale==null?1:opt.chromaScale;
+    const base=harmonyHues(a.H,opt.rule||'complementary').map((h,i)=>i?(h+rot+360)%360:h);
+    const hues=spreadHues(base,n);
+    const C=Math.max(a.C,0.06)*cs;
+    const L=clamp(opt.L==null?a.L:opt.L,0.42,0.82);
+    const out=[];
+    for(let i=0;i<n;i++){
+      if(i===0){out.push({...anchor});continue;} // the anchor is pinned, verbatim
+      const zig=(i%2?-1:1)*0.035;               // keeps neighbouring hues from reading muddy
+      out.push(oklchToSrgb(clampToGamut({L:clamp(L+zig,0.3,0.9),C,H:hues[i]})));
+    }
+    return out;
+  }
+  function sequential(anchor,n,opt){
+    opt=opt||{};
+    const a=srgbToOklch(anchor), out=[];
+    const cs=opt.chromaScale==null?1:opt.chromaScale;
+    for(let i=0;i<n;i++){
+      const t=n===1?0.5:i/(n-1);
+      const L=0.95-0.68*t;
+      // chroma peaks mid-ramp and tapers at the ends — reads more natural than flat C
+      const C=Math.max(a.C,0.05)*cs*(0.25+0.95*Math.sin(Math.PI*(0.15+0.7*t)));
+      out.push(oklchToSrgb(clampToGamut({L,C,H:a.H})));
+    }
+    return out;
+  }
+  function diverging(anchor,n,opt){
+    opt=opt||{};
+    const a=srgbToOklch(anchor);
+    const cs=opt.chromaScale==null?1:opt.chromaScale;
+    const hB=(opt.hueB==null)?(a.H+180+(opt.rotOffset||0))%360:opt.hueB;
+    const C=Math.max(a.C,0.05)*cs, out=[];
+    const half=Math.floor(n/2), odd=n%2===1;
+    const arm=(hue,steps)=>{
+      const r=[];
+      for(let i=1;i<=steps;i++){
+        const t=i/steps;
+        r.push(clampToGamut({L:0.92-0.42*t, C:C*(0.18+0.92*t), H:hue}));
+      }
+      return r;
+    };
+    arm(a.H,half).reverse().forEach(c=>out.push(oklchToSrgb(c)));
+    if(odd) out.push(oklchToSrgb(clampToGamut({L:0.96,C:0.012,H:a.H}))); // near-neutral centre
+    arm(hB,half).forEach(c=>out.push(oklchToSrgb(c)));
+    return out;
+  }
+
+  return {rgbToHex,hexToRgb,rgbToHsl,hslToRgb,rgbToHsv,rgbToCmyk,relLuminance,contrastRatio,harmonies,monochromatic,shadesTints,
+          srgbToOklch,oklchToSrgb,oklchToLinRgb,inGamut,clampToGamut,simulateCVD,cvdMatrix,
+          categorical,sequential,diverging,harmonyHues,HARMONY};
 })();
 
 /* =========================================================================
@@ -355,6 +715,78 @@ const Color = (() => {
   near(rt.r,37,2,'hsl roundtrip r'); near(rt.g,150,2,'hsl roundtrip g'); near(rt.b,190,2,'hsl roundtrip b');
   const comp=C.harmonies({r:37,g:150,b:190}).comp[1]; // ~ orange/red opposite
   checks.push([comp.r>comp.b,'complementary flips warm', comp]);
+
+  /* ---- Studio engine. The OKLab/CVD constants are the biggest silent-failure
+     risk in this file: a wrong digit still runs and just shifts every colour.
+     These assertions are the gate — nothing visual is trusted until they pass. ---- */
+  const dist=(a,b)=>Math.hypot(a.r-b.r,a.g-b.g,a.b-b.b);
+  // 1. OKLCH round-trip must return the original pixel
+  ['#2596BE','#FF0000','#00FF00','#0000FF','#123456','#EEDDCC','#808080'].forEach(hex=>{
+    const rgb=C.hexToRgb(hex), back=C.oklchToSrgb(C.srgbToOklch(rgb));
+    checks.push([dist(back,rgb)<=2,'oklch roundtrip '+hex,back,rgb]);
+  });
+  // 2. anchors + an independently published value (Ottosson: red = L .6279 a .2249 b .1258)
+  near(C.srgbToOklch({r:255,g:255,b:255}).L,1,0.002,'white L=1');
+  near(C.srgbToOklch({r:0,g:0,b:0}).L,0,0.002,'black L=0');
+  near(C.srgbToOklch({r:255,g:255,b:255}).C,0,0.002,'white C=0');
+  const red=C.srgbToOklch({r:255,g:0,b:0});
+  near(red.L,0.6279,0.002,'oklab red L matches published value');
+  near(red.C,Math.hypot(0.2249,0.1258),0.002,'oklab red C matches published value');
+  // 3. gamut clamp always lands inside sRGB
+  let gamutOK=true;
+  for(let H=0;H<360;H+=30) for(const L of [0.2,0.5,0.8]){
+    if(!C.oklchToLinRgb(C.clampToGamut({L,C:0.5,H})).every(v=>v>=-0.002&&v<=1.002)) gamutOK=false;
+  }
+  checks.push([gamutOK,'clampToGamut stays in sRGB']);
+  // 4a. The derived CVD matrices must reproduce the published Viénot 1999
+  //     matrices (Fidaner 2005 and many others quote these). This is the real
+  //     guard: it checks the derivation against an INDEPENDENT source rather
+  //     than just checking that our own arithmetic is self-consistent.
+  const PUBLISHED={
+    prot:[[0.11238,0.88762,0],[0.11238,0.88762,0],[0.00401,-0.00401,1]],
+    deut:[[0.29275,0.70725,0],[0.29275,0.70725,0],[-0.02234,0.02234,1]]
+  };
+  Object.keys(PUBLISHED).forEach(k=>{
+    const m=C.cvdMatrix(k); let worst=0;
+    for(let i=0;i<3;i++) for(let j=0;j<3;j++) worst=Math.max(worst,Math.abs(m[i][j]-PUBLISHED[k][i][j]));
+    checks.push([worst<1e-4,'CVD '+k+' matrix matches published Viénot 1999',worst]);
+  });
+  // 4b. CVD behaves like the physiology. Note protanopes/deuteranopes confuse red
+  //     and green in HUE, not in brightness — protan red goes dark, protan green
+  //     stays bright — so the collapse must be measured on hue, not RGB distance.
+  const R={r:255,g:0,b:0}, G={r:0,g:255,b:0}, B={r:0,g:0,b:255}, GREY={r:128,g:128,b:128};
+  const hueGap=(a,b)=>{const d0=Math.abs(C.rgbToHsl(a).h-C.rgbToHsl(b).h)%360; return Math.min(d0,360-d0);};
+  ['deut','prot'].forEach(k=>{
+    checks.push([hueGap(C.simulateCVD(R,k),C.simulateCVD(G,k))<10,
+      'CVD '+k+' maps red and green to one hue',[C.simulateCVD(R,k),C.simulateCVD(G,k)]]);
+    checks.push([dist(C.simulateCVD(B,k),B)<12,'CVD '+k+' preserves blue',C.simulateCVD(B,k)]);
+  });
+  checks.push([dist(C.simulateCVD(R,'trit'),R)<12,'CVD trit preserves red',C.simulateCVD(R,'trit')]);
+  ['deut','prot','trit'].forEach(k=>
+    checks.push([dist(C.simulateCVD(GREY,k),GREY)<10,'CVD '+k+' preserves grey',C.simulateCVD(GREY,k)]));
+  checks.push([dist(C.simulateCVD(R,'off'),R)===0,'CVD off is identity']);
+  // 5. generators
+  const anc={r:37,g:150,b:190};
+  const cat=C.categorical(anc,5);
+  checks.push([cat.length===5,'categorical returns n']);
+  checks.push([dist(cat[0],anc)===0,'categorical pins the anchor',cat[0],anc]);
+  checks.push([new Set(cat.map(c=>C.rgbToHex(c))).size===5,'categorical colours all distinct',cat]);
+  const catL=cat.map(c=>C.srgbToOklch(c).L);
+  checks.push([Math.max(...catL)-Math.min(...catL)<0.25,'categorical holds a lightness band',catL]);
+  let allDistinct=true;
+  Object.keys(C.HARMONY).forEach(rule=>{ for(let n=2;n<=12;n++){
+    const p=C.categorical(anc,n,{rule});
+    if(p.length!==n||new Set(p.map(c=>C.rgbToHex(c))).size!==n) allDistinct=false;
+  }});
+  checks.push([allDistinct,'categorical distinct for every rule and count 2..12']);
+  const seqL=C.sequential(anc,5).map(c=>C.srgbToOklch(c).L);
+  checks.push([seqL.every((v,i)=>i===0||v<seqL[i-1]),'sequential lightness is monotonic',seqL]);
+  const dv=C.diverging(anc,7), dvL=dv.map(c=>C.srgbToOklch(c).L);
+  checks.push([dv.length===7,'diverging returns n']);
+  checks.push([dvL[3]>dvL[0]&&dvL[3]>dvL[6],'diverging has a light centre',dvL]);
+  // 6. known WCAG pair
+  near(C.contrastRatio(C.hexToRgb('#FFFFFF'),C.hexToRgb('#767676')),4.54,0.05,'WCAG white/#767676 ≈ 4.54');
+
   const pass=checks.filter(c=>c[0]).length, total=checks.length;
   checks.filter(c=>!c[0]).forEach(c=>console.error('SELFTEST FAIL:',c[1],'got',c[2],'want',c[3]));
   const el=document.getElementById('selftest');
@@ -486,6 +918,7 @@ function setActive(rgb){
   renderContrast(rgb);
   renderPalette(rgb);
   pushHistory(hex);
+  setAnchor(rgb);   // the picked colour flows into Studio as its pinned anchor
 }
 function renderContrast(rgb){
   const hex=Color.rgbToHex(rgb);
@@ -595,6 +1028,333 @@ document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click'
 }));
 $('#dlgCopy').addEventListener('click',()=>{copyText($('#dlgText').value);$('#dlgCopy').textContent='Copied!';setTimeout(()=>$('#dlgCopy').textContent='Copy to clipboard',900);});
 $('#dlgClose').addEventListener('click',()=>dlg.close());
+
+/* =========================================================================
+   STUDIO — wheel, palettes, contrast guard, CVD, live dashboard preview
+   ========================================================================= */
+const S = {
+  anchor:{r:37,g:150,b:190},   // brand default so Studio is useful before any pick
+  rule:'complementary',
+  L:0.62, rotOffset:0, chromaScale:1,
+  n:{cat:5,seq:5,div:7},
+  bg:'#FFFFFF', cvd:'off'
+};
+// Outer rim of the wheel in OKLCH chroma. sRGB can't reach 0.37 at most
+// lightnesses, so a smaller rim keeps the usable area large; anything beyond
+// the gamut is still drawn, dimmed, rather than silently faked.
+const MAX_C = 0.30;
+
+/* ---- tabs ---- */
+function showTab(which){
+  const pick = which==='pick';
+  $('#view-pick').hidden = !pick;
+  $('#view-studio').hidden = pick;
+  $('#tab-pick').setAttribute('aria-selected', String(pick));
+  $('#tab-studio').setAttribute('aria-selected', String(!pick));
+  document.querySelectorAll('.pick-only').forEach(el=>el.style.display = pick?'':'none');
+  if(!pick) renderStudio();
+}
+$('#tab-pick').addEventListener('click',()=>showTab('pick'));
+$('#tab-studio').addEventListener('click',()=>showTab('studio'));
+
+/* ---- anchor ---- */
+function setAnchor(rgb,{silent}={}){
+  S.anchor={...rgb};
+  // start the wheel at the anchor's own lightness so the set reads as a family
+  S.L=Math.min(0.82,Math.max(0.42,Color.srgbToOklch(rgb).L));
+  $('#wLight').value=Math.round(S.L*100);
+  const hex=Color.rgbToHex(rgb);
+  $('#anchorChip').style.background=hex;
+  if(!silent) $('#anchorHex').value=hex;
+  if(!$('#view-studio').hidden) renderStudio();
+}
+$('#anchorHex').addEventListener('input',e=>{
+  const v=e.target.value.trim();
+  if(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) setAnchor(Color.hexToRgb(v),{silent:true});
+});
+$('#anchorReset').addEventListener('click',()=>{
+  S.rotOffset=0; S.chromaScale=1;
+  setAnchor(active||{r:37,g:150,b:190});
+});
+
+/* ---- wheel ---- */
+const wheel=$('#wheel'), wctx=wheel.getContext('2d');
+const wheelCache=document.createElement('canvas'); // rendered small, drawn up — the
+wheelCache.width=wheelCache.height=300;            // per-pixel pass is the slow part
+let cachedL=null, gamutEdge=null;
+function renderWheelImage(L){
+  if(cachedL===L) return;
+  const N=300, R=N/2, ctx=wheelCache.getContext('2d');
+  const img=ctx.createImageData(N,N), d=img.data;
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){
+    const dx=x-R+0.5, dy=y-R+0.5, dr=Math.hypot(dx,dy), i=(y*N+x)*4;
+    if(dr>R){d[i+3]=0;continue;}
+    let H=Math.atan2(-dy,dx)*180/Math.PI; if(H<0)H+=360;
+    const c={L, C:(dr/R)*MAX_C, H};
+    // Past the sRGB boundary we paint the most saturated reachable colour for
+    // that hue — a flat plateau rather than mush. The boundary itself is drawn
+    // as a contour on top, so the unreachable zone stays visible, not faked.
+    const rgb=Color.oklchToSrgb(Color.inGamut(c)?c:Color.clampToGamut(c));
+    d[i]=rgb.r; d[i+1]=rgb.g; d[i+2]=rgb.b; d[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  // contour of max in-gamut chroma per hue, in fractions of the rim
+  gamutEdge=[];
+  for(let H=0;H<360;H+=2) gamutEdge.push([H, Math.min(Color.clampToGamut({L,C:MAX_C,H}).C/MAX_C,1)]);
+  cachedL=L;
+}
+function drawGamutEdge(size){
+  if(!gamutEdge) return;
+  const R=size/2;
+  wctx.beginPath();
+  gamutEdge.forEach(([H,f],i)=>{
+    const a=H*Math.PI/180, r=f*R*0.94;
+    const x=R+Math.cos(a)*r, y=R-Math.sin(a)*r;
+    i?wctx.lineTo(x,y):wctx.moveTo(x,y);
+  });
+  wctx.closePath();
+  wctx.lineWidth=3; wctx.strokeStyle='rgba(255,255,255,.75)'; wctx.stroke();
+  wctx.lineWidth=1; wctx.strokeStyle='rgba(0,0,0,.35)'; wctx.stroke();
+}
+function nodeHues(){
+  const aH=Color.srgbToOklch(S.anchor).H;
+  return (Color.HARMONY[S.rule]||Color.HARMONY.complementary)
+    .map((d,i)=> i ? ((aH+d+S.rotOffset)%360+360)%360 : ((aH%360)+360)%360);
+}
+function nodePos(i,hue,size){
+  const R=size/2, aC=Color.srgbToOklch(S.anchor).C;
+  const c = i===0 ? aC : Math.min(aC*S.chromaScale, MAX_C);
+  const rad=Math.min(c/MAX_C,1)*R*0.94, a=hue*Math.PI/180;
+  return {x:R+Math.cos(a)*rad, y:R-Math.sin(a)*rad};
+}
+function drawWheel(){
+  const size=wheel.width;
+  renderWheelImage(S.L);
+  wctx.clearRect(0,0,size,size);
+  wctx.imageSmoothingQuality='high';
+  wctx.drawImage(wheelCache,0,0,size,size);
+  drawGamutEdge(size);
+  const hues=nodeHues();
+  hues.forEach((h,i)=>{
+    const p=nodePos(i,h,size);
+    const swatch=i===0 ? S.anchor
+      : Color.oklchToSrgb(Color.clampToGamut({L:S.L,C:Math.min(Color.srgbToOklch(S.anchor).C*S.chromaScale,MAX_C),H:h}));
+    wctx.beginPath(); wctx.arc(p.x,p.y,i===0?26:22,0,Math.PI*2);
+    wctx.fillStyle=Color.rgbToHex(swatch); wctx.fill();
+    wctx.lineWidth=6; wctx.strokeStyle='#fff'; wctx.stroke();
+    wctx.lineWidth=2; wctx.strokeStyle='rgba(0,0,0,.25)'; wctx.stroke();
+    if(i===0){ // pin marker on the locked anchor
+      wctx.fillStyle = Color.contrastRatio(swatch,{r:255,g:255,b:255})>=Color.contrastRatio(swatch,{r:0,g:0,b:0}) ? '#fff':'#111';
+      wctx.font='700 22px '+getComputedStyle(document.body).fontFamily;
+      wctx.textAlign='center'; wctx.textBaseline='middle';
+      wctx.fillText('◉',p.x,p.y+1);
+    }
+  });
+}
+let dragIdx=null;
+function wheelPoint(e){
+  const r=wheel.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/r.width*wheel.width, y:(e.clientY-r.top)/r.height*wheel.height};
+}
+wheel.addEventListener('pointerdown',e=>{
+  const p=wheelPoint(e), hues=nodeHues();
+  let best=null,bestD=Infinity;
+  hues.forEach((h,i)=>{
+    if(i===0) return;                       // the anchor is pinned — never draggable
+    const q=nodePos(i,h,wheel.width), d=Math.hypot(q.x-p.x,q.y-p.y);
+    if(d<bestD){bestD=d;best=i;}
+  });
+  if(best!==null && bestD<46){
+    dragIdx=best; wheel.setPointerCapture(e.pointerId); wheel.classList.add('dragging');
+  }
+});
+wheel.addEventListener('pointermove',e=>{
+  if(dragIdx===null) return;
+  const p=wheelPoint(e), R=wheel.width/2;
+  const dx=p.x-R, dy=p.y-R;
+  let H=Math.atan2(-dy,dx)*180/Math.PI; if(H<0)H+=360;
+  // dragging one node rotates the whole set; its radius sets the shared chroma
+  const baseH=Color.srgbToOklch(S.anchor).H + (Color.HARMONY[S.rule]||Color.HARMONY.complementary)[dragIdx];
+  S.rotOffset=((H-baseH)%360+360)%360;
+  const aC=Color.srgbToOklch(S.anchor).C;
+  const wantC=Math.min(Math.hypot(dx,dy)/(R*0.94),1)*MAX_C;
+  S.chromaScale=aC>0.001 ? Math.max(0.15,Math.min(wantC/aC,MAX_C/aC)) : 1;
+  renderStudio();
+});
+['pointerup','pointercancel'].forEach(ev=>wheel.addEventListener(ev,()=>{
+  dragIdx=null; wheel.classList.remove('dragging');
+}));
+$('#wLight').addEventListener('input',e=>{S.L=+e.target.value/100; renderStudio();});
+$('#wRule').addEventListener('change',e=>{S.rule=e.target.value; S.rotOffset=0; renderStudio();});
+
+/* ---- steppers + toggles ---- */
+const LIMITS={cat:[2,12],seq:[3,11],div:[3,11]};
+document.querySelectorAll('.stepper').forEach(st=>{
+  st.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const k=st.dataset.step, [lo,hi]=LIMITS[k];
+    S.n[k]=Math.max(lo,Math.min(hi,S.n[k]+ +b.dataset.d));
+    renderStudio();
+  }));
+});
+$('#bgSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.bg=b.dataset.bg;
+  $('#bgSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  renderStudio();
+});
+$('#cvdSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.cvd=b.dataset.cvd;
+  $('#cvdSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  renderStudio();
+});
+
+/* ---- palettes ---- */
+function studioPalettes(){
+  const o={rule:S.rule, rotOffset:S.rotOffset, chromaScale:S.chromaScale, L:S.L};
+  return {
+    cat:Color.categorical(S.anchor,S.n.cat,o),
+    seq:Color.sequential(S.anchor,S.n.seq,{chromaScale:S.chromaScale}),
+    div:Color.diverging(S.anchor,S.n.div,{chromaScale:S.chromaScale, rotOffset:S.rotOffset})
+  };
+}
+const seen=c=>Color.simulateCVD(c,S.cvd);   // what a CVD viewer would see
+function wcagBadge(rgb){
+  // contrast is judged on the REAL colour — a CVD sim must not change the ratio
+  const r=Color.contrastRatio(rgb,Color.hexToRgb(S.bg));
+  const cls=r>=7?'pass':r>=4.5?'pass':r>=3?'aa':'fail';
+  const txt=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA+':'✕';
+  return `<i class="wcag ${cls}" title="${r.toFixed(2)}:1 vs ${S.bg}">${txt}</i>`;
+}
+function fillStrip(id,list){
+  const box=$(id); box.innerHTML='';
+  list.forEach(rgb=>{
+    const hex=Color.rgbToHex(rgb), el=document.createElement('div');
+    el.className='ss';
+    el.style.background=Color.rgbToHex(seen(rgb));
+    el.title=`${hex} — click to copy`;
+    el.innerHTML=`${wcagBadge(rgb)}<b>${hex}</b>`;
+    el.addEventListener('click',()=>{copyText(hex);el.classList.add('copied');setTimeout(()=>el.classList.remove('copied'),700);});
+    box.appendChild(el);
+  });
+}
+
+/* ---- mini dashboard ---- */
+const BARS=[78,54,91,42,66], LINE_A=[30,42,38,55,61,72], LINE_B=[62,50,58,41,47,36];
+// spread so each row lands in its own bin of the ramp, whatever its length
+const REGIONS=[['North',0.97],['South',0.72],['East',0.41],['West',0.06]];
+function ink(bgRgb){
+  return Color.contrastRatio(bgRgb,{r:255,g:255,b:255})>=Color.contrastRatio(bgRgb,{r:0,g:0,b:0})?'#FFFFFF':'#111111';
+}
+function renderMini(p){
+  const dark=S.bg!=='#FFFFFF';
+  const shown=c=>Color.rgbToHex(seen(c));
+  const cat=p.cat, seq=p.seq;
+  $('#mini').style.background=S.bg;
+  const cardBg=dark?'rgba(255,255,255,.06)':'#FFFFFF';
+  const cardInk=dark?'#EEF1F6':'#1F2430';
+  const cardLine=dark?'rgba(255,255,255,.14)':'var(--line)';
+  document.querySelectorAll('#mini .mini-card').forEach(c=>{
+    c.style.background=cardBg; c.style.color=cardInk; c.style.border='1px solid '+cardLine;
+  });
+  [[$('#kpi1'),cat[0]],[$('#kpi2'),cat[1]||cat[0]]].forEach(([el,c])=>{
+    el.style.background=shown(c); el.style.color=ink(seen(c));
+  });
+  // bars
+  $('#svgBars').innerHTML=BARS.map((v,i)=>{
+    const w=38, gap=8, x=i*(w+gap), h=v*0.8, y=88-h;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${shown(cat[i%cat.length])}"/>`;
+  }).join('');
+  // lines
+  const pts=arr=>arr.map((v,i)=>`${i*(240/(arr.length-1))},${88-v*0.85}`).join(' ');
+  $('#svgLines').innerHTML=
+    `<polyline fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="${shown(cat[0])}" points="${pts(LINE_A)}"/>`+
+    `<polyline fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="${shown(cat[1]||cat[0])}" points="${pts(LINE_B)}"/>`;
+  // table, conditionally formatted on the sequential ramp
+  $('#miniTbl').innerHTML=
+    `<tr><th style="color:${cardInk};opacity:.6">Region</th><th style="color:${cardInk};opacity:.6">Share</th></tr>`+
+    REGIONS.map(([name,v])=>{
+      const c=seq[Math.min(seq.length-1,Math.round(v*(seq.length-1)))];
+      return `<tr><td style="color:${cardInk}">${name}</td>`+
+             `<td class="hm" style="background:${shown(c)};color:${ink(seen(c))}">${Math.round(v*100)}%</td></tr>`;
+    }).join('');
+}
+
+/* ---- master render ---- */
+let LAST=null;
+function renderStudio(){
+  const p=studioPalettes(); LAST=p;
+  $('#nCat').textContent=S.n.cat; $('#nSeq').textContent=S.n.seq; $('#nDiv').textContent=S.n.div;
+  $('#anchorChip').style.background=Color.rgbToHex(S.anchor);
+  if(document.activeElement!==$('#anchorHex')) $('#anchorHex').value=Color.rgbToHex(S.anchor);
+  drawWheel();
+  fillStrip('#s-cat',p.cat); fillStrip('#s-seq',p.seq); fillStrip('#s-div',p.div);
+  renderMini(p);
+  const names={deut:'deuteranopia',prot:'protanopia',trit:'tritanopia'};
+  $('#cvdNote').innerHTML = S.cvd==='off'
+    ? `Badges show each swatch's WCAG ratio against the chosen background.`
+    : `Showing <b>${names[S.cvd]}</b> — swatches and the preview are simulated (Viénot 1999). `+
+      `WCAG badges still describe the <b>real</b> colours.`;
+}
+
+/* ---- studio exports ---- */
+function sHexes(k){return (LAST?LAST[k]:[]).map(Color.rgbToHex);}
+function sExportCSS(){
+  const rows=[['cat','cat'],['seq','seq'],['div','div']];
+  return ':root{\n'+rows.map(([k,pre])=>sHexes(k).map((h,i)=>`  --${pre}-${i+1}: ${h};`).join('\n')).join('\n')+'\n}';
+}
+function sExportJSON(){
+  return JSON.stringify({anchor:Color.rgbToHex(S.anchor),rule:S.rule,
+    categorical:sHexes('cat'),sequential:sHexes('seq'),diverging:sHexes('div')},null,2);
+}
+function sExportTheme(){
+  // Same shape the Pick tab exports (dataColors is what BI tools import), grown
+  // with named sequential/diverging arrays that importers ignore harmlessly.
+  const cat=sHexes('cat');
+  return JSON.stringify({
+    name:`Studio ${Color.rgbToHex(S.anchor)}`,
+    dataColors:cat,
+    background:S.bg, foreground:S.bg==='#FFFFFF'?'#1F2430':'#FFFFFF',
+    tableAccent:cat[0]||'#2596BE',
+    sequential:sHexes('seq'), diverging:sHexes('div')
+  },null,2);
+}
+function sExportPNG(){
+  const rows=[['Categorical',sHexes('cat')],['Sequential',sHexes('seq')],['Diverging',sHexes('div')]];
+  const sw=120, rh=120, head=34, pad=20;
+  const cols=Math.max(...rows.map(r=>r[1].length));
+  const c=document.createElement('canvas');
+  c.width=pad*2+cols*sw; c.height=pad*2+rows.length*(rh+head);
+  const x=c.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  rows.forEach(([label,hexes],ri)=>{
+    const y0=pad+ri*(rh+head);
+    x.fillStyle='#6b7280'; x.font='600 15px monospace'; x.textAlign='left';
+    x.fillText(label.toUpperCase(),pad,y0+20);
+    const w=(cols*sw)/hexes.length;
+    hexes.forEach((hex,i)=>{
+      x.fillStyle=hex; x.fillRect(pad+i*w,y0+head,w,rh);
+      const rgb=Color.hexToRgb(hex);
+      x.fillStyle=ink(rgb); x.font='600 13px monospace'; x.textAlign='center';
+      x.fillText(hex,pad+i*w+w/2,y0+head+rh-14);
+    });
+  });
+  const a=document.createElement('a');a.download='dashboard-palette.png';a.href=c.toDataURL('image/png');a.click();
+}
+document.querySelectorAll('[data-sexport]').forEach(b=>b.addEventListener('click',()=>{
+  const kind=b.dataset.sexport;
+  if(kind==='png'){sExportPNG();return;}
+  const map={css:['CSS variables',sExportCSS()],json:['JSON',sExportJSON()],theme:['Theme JSON',sExportTheme()]};
+  const [title,text]=map[kind];
+  $('#dlgTitle').textContent='Export · Studio '+title; $('#dlgText').value=text;
+  dlg.showModal();
+}));
+
+/* ---- studio init ---- */
+S.L=Math.min(0.82,Math.max(0.42,Color.srgbToOklch(S.anchor).L));
+$('#wLight').value=Math.round(S.L*100);
+$('#anchorChip').style.background=Color.rgbToHex(S.anchor);
+$('#anchorHex').value=Color.rgbToHex(S.anchor);
 
 /* ---- tiny toast ---- */
 let toastT;
