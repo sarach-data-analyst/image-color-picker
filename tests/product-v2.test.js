@@ -44,6 +44,10 @@ matches(/function colorDistance\(/, 'CVD color distance helper');
 matches(/function conflictWarnings\(/, 'CVD conflict warnings');
 matches(/function renderAccessibilityReport\(/, 'accessibility report panel renderer');
 matches(/function sAccessibilityReport\(\)/, 'accessibility report exporter');
+assert(
+  !/\.readiness-panel\{[^}]*position:sticky/.test(html),
+  'Expected readiness panel not to be sticky because it shares a column with Tune harmony'
+);
 matches(/good:\s*sHexes\('cat'\)\[0\]/, 'BI good role in Theme JSON');
 matches(/neutral:\s*sHexes\('div'\)\[Math\.floor/, 'BI neutral role in Theme JSON');
 matches(/bad:\s*sHexes\('cat'\)\[2\]/, 'BI bad role in Theme JSON');
@@ -57,7 +61,7 @@ assert(
   'Expected README to document v2 workflow'
 );
 assert(
-  sw.includes("const CACHE = 'color-picker-v7';"),
+  sw.includes("const CACHE = 'color-picker-v8';"),
   'Expected service worker cache to be bumped for the v2 app shell'
 );
 
