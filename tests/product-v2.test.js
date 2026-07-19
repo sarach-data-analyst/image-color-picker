@@ -25,7 +25,11 @@ includes('id="savedPalettes"', 'saved palette list');
 includes('data-sexport="report"', 'accessibility report export');
 includes('class="studio-hero"', 'modern Studio hero');
 includes('class="studio-metric"', 'Studio metric chips');
-includes('class="studio-actions"', 'Studio action bar');
+includes('command-exports', 'Studio command actions');
+includes('studio-command', 'premium command bar');
+includes('palette-stage', 'palette-first stage');
+includes('readiness-panel', 'export readiness panel');
+includes('wheel-dock', 'supporting wheel dock');
 includes('workspace-panel wheel-panel', 'modern wheel panel class');
 includes('workspace-panel palette-panel', 'modern palette panel class');
 includes('workspace-panel preview-panel', 'modern preview panel class');
@@ -53,7 +57,7 @@ assert(
   'Expected README to document v2 workflow'
 );
 assert(
-  sw.includes("const CACHE = 'color-picker-v6';"),
+  sw.includes("const CACHE = 'color-picker-v7';"),
   'Expected service worker cache to be bumped for the v2 app shell'
 );
 
