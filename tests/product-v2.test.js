@@ -45,7 +45,7 @@ matches(/function conflictWarnings\(/, 'CVD conflict warnings');
 matches(/function renderAccessibilityReport\(/, 'accessibility report panel renderer');
 matches(/function sAccessibilityReport\(\)/, 'accessibility report exporter');
 assert(
-  !/\.readiness-panel\{[^}]*position:sticky/.test(html),
+  !/\.readiness-panel\s*\{[^}]*position\s*:\s*sticky/.test(html),
   'Expected readiness panel not to be sticky because it shares a column with Tune harmony'
 );
 matches(/good:\s*sHexes\('cat'\)\[0\]/, 'BI good role in Theme JSON');
