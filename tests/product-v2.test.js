@@ -23,6 +23,12 @@ function matches(pattern, label) {
 includes('id="savePalette"', 'palette save button');
 includes('id="savedPalettes"', 'saved palette list');
 includes('data-sexport="report"', 'accessibility report export');
+includes('class="studio-hero"', 'modern Studio hero');
+includes('class="studio-metric"', 'Studio metric chips');
+includes('class="studio-actions"', 'Studio action bar');
+includes('workspace-panel wheel-panel', 'modern wheel panel class');
+includes('workspace-panel palette-panel', 'modern palette panel class');
+includes('workspace-panel preview-panel', 'modern preview panel class');
 includes('const STORAGE_KEY', 'localStorage key');
 matches(/function serializeStudioState\(\)/, 'studio state serializer');
 matches(/function applyStudioState\(state,\s*\{render\}=\{\}\)/, 'studio state applier');
@@ -47,7 +53,7 @@ assert(
   'Expected README to document v2 workflow'
 );
 assert(
-  sw.includes("const CACHE = 'color-picker-v5';"),
+  sw.includes("const CACHE = 'color-picker-v6';"),
   'Expected service worker cache to be bumped for the v2 app shell'
 );
 
