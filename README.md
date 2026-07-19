@@ -17,6 +17,7 @@ Two tabs:
 4. Hover to aim with the magnifier loupe, then **click** the pixel.
 5. Copy any format (HEX / RGB / HSL / HSV / CMYK), read which text color is legible on it (WCAG), and grab the harmony swatches.
 6. **Export** the palette as CSS variables, JSON, a **Theme JSON** (`dataColors` array — imports into Power BI and other BI tools), or a PNG strip.
+7. In **Studio**, save palettes locally, copy a share link for an exact Studio setup, and export an **Accessibility report** for contrast and colorblind-review notes.
 
 Other ways to load an image: drag-and-drop, **Upload image**, or paste an image URL. (URL images from other sites may be blocked from pixel reading by CORS — paste/upload always works.)
 
@@ -36,7 +37,20 @@ Everything is generated in **OKLCH**, a perceptually uniform color space, so eve
 - **Contrast guard** — every swatch carries its WCAG rating against white or dark. `AAA` / `AA` / `AA+` (large text only) / `✕` (fails).
 - **Colorblind** — simulate deuteranopia, protanopia or tritanopia. Swatches *and* the preview repaint, so you can see whether two series stay distinguishable. WCAG badges keep describing the real colors.
 - **Live preview** — KPI cards, bars, lines, and a conditionally-formatted table, painted from the current palette. A swatch strip lies about legibility; a dashboard doesn't.
-- **Export** — CSS variables (`--cat-*`, `--seq-*`, `--div-*`), JSON, **Theme JSON** (`dataColors` for Power BI, plus named `sequential` / `diverging`), or a PNG of all three rows.
+- **Accessibility report** — copy a plain-text report showing WCAG contrast for every categorical, sequential, and diverging swatch, plus warnings when categorical colors may collapse under deuteranopia, protanopia, or tritanopia simulation.
+- **Save and share** — save palettes on this device with `localStorage`, or copy a URL hash that recreates the exact Studio setup for a teammate. No account or upload is involved.
+- **Export** — CSS variables (`--cat-*`, `--seq-*`, `--div-*`), JSON, **Theme JSON** (`dataColors` for Power BI, named `sequential` / `diverging`, and BI roles such as `good`, `neutral`, `bad`, `minimum`, `center`, `maximum`), an Accessibility report, or a PNG of all three rows.
+
+### Studio workflow
+
+Use Studio as a dashboard palette workflow:
+
+1. Pick or type the anchor color.
+2. Tune rule, lightness, series count, background, and colorblind simulation.
+3. Check the Accessibility report and live preview.
+4. Save palettes locally when you want to return later.
+5. Copy link to share an exact Studio setup.
+6. Export Theme JSON for BI tools, or CSS/JSON/PNG for implementation notes.
 
 ### Color accuracy
 
@@ -69,5 +83,7 @@ To ship an update: edit the files, bump `CACHE` in `sw.js` (currently `color-pic
 | `manifest.webmanifest` | PWA metadata so the browser offers "Install". |
 | `sw.js` | Service worker; precaches the app shell for offline use. |
 | `icon-192.png`, `icon-512.png` | App icons. |
+| `tests/product-v2.test.js` | Lightweight static QA checks for the Studio v2 workflow. |
+| `docs/archive/` | Historical product/spec artifacts that are no longer current root-level work. |
 
 No build step, no dependencies.

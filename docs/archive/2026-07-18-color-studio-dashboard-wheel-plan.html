@@ -1,0 +1,131 @@
+<title>2026-07-18-color-studio-dashboard-wheel-plan</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Mitr:wght@400;500;600&family=Sarabun:wght@300;400;500;600&display=swap');
+:root{--cream-50:#faf8ee;--cream-100:#f0f0e0;--cream-200:#e6e4d2;--cream-300:#d8d4bc;--sage-100:#cfd5c0;--sage-300:#a0a890;--sage-400:#889878;--sage-500:#6e7e60;--forest-700:#485840;--forest-800:#384830;--forest-900:#304828;--accent-tomato:#c25d4f;--accent-honey:#d6a64a;--accent-sky:#6f8d9c;--status-gain:#5d8a5e;--bg-page:var(--cream-100);--bg-card:var(--cream-50);--fg-1:var(--forest-900);--fg-2:var(--forest-700);--fg-3:var(--sage-500);--line-3:var(--cream-300);--font-script:'Caveat',cursive;--font-display:'Mitr','Sarabun',system-ui,sans-serif;--font-body:'Sarabun',system-ui,sans-serif;--font-mono:'Courier New',monospace;--radius-md:14px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg-page);color:var(--fg-1);font-family:var(--font-body);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:780px;margin:0 auto;padding:2rem 1.5rem 5rem;}
+.notebar{display:flex;gap:1rem;align-items:baseline;margin-bottom:1.8rem;padding-bottom:0.8rem;border-bottom:2px solid var(--forest-900);}
+.notebar a{font-size:0.85rem;color:var(--accent-sky);text-decoration:none;border-bottom:1px solid var(--line-3);}
+.notebar a:hover{border-bottom-color:var(--accent-tomato);}
+.notebar .meta{margin-left:auto;font-family:var(--font-mono);font-size:0.7rem;color:var(--fg-3);}
+.prose h1{font-family:var(--font-display);font-size:1.9rem;font-weight:600;line-height:1.2;margin:0.2rem 0 1rem;}
+.prose h2{font-family:var(--font-display);font-size:1.35rem;font-weight:600;margin:1.8rem 0 0.7rem;padding-bottom:0.3rem;border-bottom:1.5px solid var(--cream-300);}
+.prose h3{font-family:var(--font-display);font-size:1.1rem;font-weight:600;margin:1.3rem 0 0.5rem;}
+.prose h4{font-size:0.95rem;font-weight:700;margin:1rem 0 0.4rem;color:var(--fg-2);}
+.prose p{margin:0.7rem 0;}
+.prose ul,.prose ol{margin:0.6rem 0 0.6rem 1.4rem;}
+.prose li{margin:0.25rem 0;}
+.prose li.task{list-style:none;margin-left:-1.2rem;}
+.prose li .box{font-family:var(--font-mono);color:var(--sage-500);}
+.prose li.done{color:var(--fg-3);}
+.prose li.done .box{color:var(--status-gain);}
+.prose a{color:var(--accent-sky);text-decoration:none;border-bottom:1px solid var(--line-3);}
+.prose a:hover{border-bottom-color:var(--accent-tomato);}
+.prose strong{color:var(--fg-1);}
+.prose code{font-family:var(--font-mono);font-size:0.86em;background:var(--cream-200);border-radius:3px;padding:0.08em 0.35em;}
+.prose pre{background:var(--forest-900);color:var(--cream-50);border-radius:var(--radius-md);padding:1rem 1.1rem;overflow-x:auto;margin:1rem 0;}
+.prose pre code{background:none;color:inherit;padding:0;font-size:0.82rem;}
+.prose blockquote{border-left:3px solid var(--sage-400);background:var(--bg-card);padding:0.6rem 1rem;margin:1rem 0;color:var(--fg-2);border-radius:0 8px 8px 0;}
+.prose table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:0.88rem;display:block;overflow-x:auto;}
+.prose th,.prose td{border:1px solid var(--cream-300);padding:0.45rem 0.7rem;text-align:left;vertical-align:top;}
+.prose th{background:var(--sage-100);font-weight:600;}
+.prose hr{border:none;border-top:1.5px dashed var(--cream-300);margin:1.6rem 0;}
+</style>
+<div class="wrap">
+<div class="notebar"><a href="../../../index.html">← Command center</a><a href="../../../knowledge.html">Knowledge library</a><span class="meta"></span></div>
+<article class="prose">
+<h1>Color Studio — dashboard color wheel (spec + build plan)</h1>
+<p><strong>Date:</strong> 2026-07-18 <strong>Status:</strong> approved design, not yet built <strong>Target repo:</strong> <code>~/Desktop/image-color-picker/</code> (standalone public PWA — NOT this juzmatch repo) <strong>Live tool:</strong> https://sarach-data-analyst.github.io/image-color-picker/ <strong>Related:</strong> <code>docs/superpowers/specs/2026-07-17-image-color-picker-tool-prd.md</code> (the original picker PRD)</p>
+<blockquote><strong>How to run this later.</strong> This session could not reach the tool repo (it sits outside the workspace sandbox root). Build it by relaunching Claude Code from inside the repo: ``<code> cd ~/Desktop/image-color-picker &amp;&amp; claude </code>`<code> Then point it at this file. The very first build step is <strong>read the real </code>index.html<code></strong> and reconcile the integration notes below against the actual </code>Color` module, export map, tab markup, and self-check — do not trust remembered variable names.</blockquote>
+<hr>
+<h2>1. Why</h2>
+<p>The tool already pixel-picks a real color out of a screenshot (a brand blue, a stakeholder deck). Canva's color wheel is a general-purpose toy that ignores that context. We want a color wheel <strong>for dashboard designers</strong>: take the picked color as a locked anchor and build a <em>working, contrast-safe, colorblind-safe</em> dashboard palette around it — the categorical / sequential / diverging sets every BI tool needs, previewed on a real mini-dashboard.</p>
+<p>Locked scope (user chose this over the phased option): <strong>full designer vision</strong> — all six pieces below.</p>
+<h2>2. Where it lives</h2>
+<p>A second tab in the existing single-file app: <strong><code>Pick</code> | <code>Studio</code></strong>.</p>
+<ul><li>The color pixel-picked on the <code>Pick</code> tab flows into <code>Studio</code> as the pinned anchor.</li><li><code>Studio</code> also accepts a typed/pasted HEX so you can design without a screenshot.</li><li>One <code>index.html</code>, one URL, one PWA install. No new repo, no build step, no dependencies.</li></ul>
+<h2>3. Layout</h2>
+<pre><code>┌ Pick | Studio ────────────────────────────────────────────┐
+│  ┌── WHEEL ──────────┐   Categorical  ●●●●●  [– 5 +]        │
+│  │   ◉ ← brand (pin) │   Sequential   ▁▃▅▇█  [– 5 +]        │
+│  │  ◐    ◑    ◒      │   Diverging    █▅▁▅█  [– 7 +]        │
+│  │  (drag nodes)     │   ──────────────────────────────    │
+│  └───────────────────┘   Contrast vs [⬜white ⬛dark]:      │
+│  Lightness ▔▔▔●▔▔  Rule  │   ●AA✓AAA✗  ●AA✓  ●fail⚠         │
+│  [Complementary ▾]       │   Colorblind: (off) deut prot trit│
+│  ┌─ live mini-dashboard preview (repaints under CVD) ─────┐ │
+│  │ [KPI] [KPI]   ▮▮▮▮ bars   ╱╲ lines   ▦ table+scale     │ │
+│  └────────────────────────────────────────────────────────┘ │
+│  Export:  Copy CSS · JSON · Theme JSON · PNG                 │
+└──────────────────────────────────────────────────────────────┘</code></pre>
+<p>Single column, stacked, on mobile (wheel → palettes → contrast/CVD → preview → export).</p>
+<h2>4. Components</h2>
+<h3>4.1 Color engine (extend the existing <code>Color</code> module)</h3>
+<p>Add pure, self-tested functions alongside the current RGB/HEX/HSL/HSV/CMYK/WCAG math:</p>
+<ul><li><strong><code>srgbToOklch(hex|rgb)</code> / <code>oklchToSrgb({L,C,H})</code></strong> via linear-sRGB ↔ OKLab ↔ OKLCH.</li><ul><li>Gamma decode sRGB → linear, apply the OKLab forward matrix, cube-root, apply the second matrix</li></ul></ul>
+<p>to get <code>L,a,b</code>; <code>C=hypot(a,b)</code>, <code>H=atan2(b,a)</code> in degrees. Inverse reverses it.</p>
+<ul><li><strong>Constants must come from a canonical source, not memory.</strong> Use Björn Ottosson's published</li></ul>
+<p>OKLab matrices (or mirror the <code>culori</code> implementation). Reference values (to be verified against source during build):</p>
+<ul><li>forward <code>l = 0.4122214708 r + 0.5363325363 g + 0.0514459929 b</code> (and the m, s rows),</li></ul>
+<p>then <code>L = 0.2104542553 l' + 0.7936177850 m' − 0.0040720468 s'</code> (and a, b rows).</p>
+<ul><li>A wrong constant still "runs" but shifts every color subtly — the round-trip self-check</li></ul>
+<p>(§4.5) is the guard; it must pass before anything else is trusted.</p>
+<ul><li><strong><code>clampToGamut({L,C,H})</code></strong> — reduce <code>C</code> (binary search) until the color falls inside sRGB.</li></ul>
+<p>Needed because many <code>L,H</code> + high <code>C</code> combos leave the gamut.</p>
+<h3>4.2 Palette generators (in OKLCH, anchored on the picked color)</h3>
+<ul><li><strong><code>categorical(anchor, n)</code></strong> — n hues evenly spaced around the wheel at the anchor's L and C,</li></ul>
+<p>each gamut-clamped. <strong>Nudge L slightly across steps</strong> (e.g. ±a few % zig-zag) so hues stay visually distinct — a flat equal-L set can read muddy or too similar at some anchor lightnesses.</p>
+<ul><li><strong><code>sequential(anchor, n)</code></strong> — fix H at the anchor's hue; ramp L light→dark; let C peak mid-ramp</li></ul>
+<p>and taper at the ends (looks more natural than constant C).</p>
+<ul><li><strong><code>diverging(anchorA, anchorB, n)</code></strong> — two <code>sequential</code> arms (anchor hue + a chosen second hue,</li></ul>
+<p>default its complement) meeting at a light near-neutral center. n odd → shared center.</p>
+<ul><li><strong>Harmony nodes</strong> for the wheel — complementary / analogous / triadic / tetradic / split-complementary</li></ul>
+<p>as hue offsets (180 / ±30 / ±120 / 90-square / 180±30) applied in OKLCH, gamut-clamped.</p>
+<h3>4.3 Interactive wheel (canvas)</h3>
+<ul><li>Hue = angle, chroma = radius, at a <strong>Lightness slider</strong> value. Render the OKLCH slice to a canvas</li></ul>
+<p>(per-pixel is fine for a small wheel; cache the image and only redraw on lightness change).</p>
+<ul><li>Draggable nodes = the current harmony set. The <strong>anchor node is pinned</strong> (brand color); dragging</li></ul>
+<p>any node rotates/repositions the whole harmony set relative to the anchor per the selected rule.</p>
+<ul><li>A <strong>Rule</strong> dropdown switches the harmony geometry. Node positions drive the categorical seed and</li></ul>
+<p>the palette rows update live.</p>
+<ul><li>Loupe/coordinate math can reuse patterns from the existing <code>Pick</code> canvas picker.</li></ul>
+<h3>4.4 Contrast guard + colorblind</h3>
+<ul><li><strong>Contrast:</strong> background selector (white default + a dark option). Each palette swatch shows its</li></ul>
+<p>WCAG ratio vs the background with an AA/AAA pass/fail badge (reuse the existing WCAG contrast fn).</p>
+<ul><li><strong>Colorblind:</strong> off / deuteranopia / protanopia / tritanopia toggle. When on, re-render swatches</li></ul>
+<p><strong>and the mini-dashboard</strong> through a CVD simulation matrix.</p>
+<ul><li>**Use canonical CVD matrices (Brettel 1997 or Machado 2009), pulled from a published source —</li></ul>
+<p>do not hand-type coefficients from memory.** These are exactly the numbers that look right and are wrong. Cite the source in a code comment.</p>
+<h3>4.5 Mini-dashboard preview</h3>
+<p>Small HTML/SVG cockpit repainted live from the current palette (and through the CVD matrix when on):</p>
+<ul><li>2 KPI cards (categorical[0], [1])</li><li>a 4–5 bar chart (categorical)</li><li>a 2-line chart (categorical)</li><li>a small table with one column conditionally formatted by the <strong>sequential</strong> ramp</li></ul>
+<p>Purpose: a swatch strip lies about legibility; a dashboard doesn't.</p>
+<h3>4.6 Exports (reuse existing plumbing)</h3>
+<ul><li>Grow <strong>Theme JSON</strong> to carry <code>dataColors</code> (categorical) plus named <code>sequential</code> and <code>diverging</code></li></ul>
+<p>arrays, alongside the existing name/background/foreground keys — still imports into Power BI et al.</p>
+<ul><li>CSS variables: emit <code>--cat-1..n</code>, <code>--seq-1..n</code>, <code>--div-1..n</code>.</li><li>Keep JSON + PNG. PNG swatch export should include all three palette rows.</li></ul>
+<h3>4.7 Self-check (extend the inline block; bump the footer count)</h3>
+<p>Add assertions:</p>
+<ul><li>OKLCH round-trip: <code>srgbToOklch → oklchToSrgb</code> within a small ΔE / per-channel tolerance for a set</li></ul>
+<p>of known hexes.</p>
+<ul><li>Anchors: white → L ≈ 1, black → L ≈ 0.</li><li><code>clampToGamut</code> output always in sRGB [0,1].</li><li><code>categorical(anchor, n)</code> returns n colors within a target perceived-lightness band (not identical).</li><li>Known WCAG pairs: white/black ratio = 21; a mid pair matches an expected value.</li></ul>
+<h2>5. Build order (milestones)</h2>
+<ol><li><strong>Read real <code>index.html</code></strong>; map the actual <code>Color</code> module, export map, tab/section markup, and</li></ol>
+<p>self-check block. Reconcile every integration note above with real names.</p>
+<ol><li><strong>Engine:</strong> OKLCH convert + gamut clamp, with self-check round-trip passing first. *Nothing visual</li></ol>
+<p>until this passes.*</p>
+<ol><li><strong>Palette generators</strong> (categorical / sequential / diverging / harmony) + their self-checks.</li><li><strong>Studio tab shell</strong> + anchor wiring from <code>Pick</code> + HEX input. Render the three palette rows as</li></ol>
+<p>static swatches from the anchor (no wheel yet) to validate generators end-to-end in the browser.</p>
+<ol><li><strong>Interactive wheel</strong> (canvas render + draggable harmony nodes + lightness slider + rule dropdown).</li><li><strong>Contrast guard</strong> badges.</li><li><strong>Colorblind</strong> toggle (swatches + preview) with canonical matrices.</li><li><strong>Mini-dashboard preview.</strong></li><li><strong>Exports</strong> grown to include the three palettes.</li><li><strong>PWA cache bump</strong> (<code>CACHE</code> in <code>sw.js</code>) so installed clients update; update <code>README.md</code>.</li><li><strong>Deploy:</strong> commit + push to <code>main</code> of the tool repo; confirm Pages build; verify live in a fresh</li></ol>
+<p>tab (buttons, self-check count, wheel drag, contrast/CVD toggles).</p>
+<h2>6. Acceptance criteria</h2>
+<ul><li>Studio tab reachable; anchor = last picked color, editable via HEX.</li><li>Wheel renders, anchor node pinned, other nodes drag and update palettes live; lightness slider works.</li><li>Categorical/sequential/diverging generate from the anchor and look perceptually even (OKLCH).</li><li>Every swatch shows a WCAG badge vs the chosen background.</li><li>CVD toggle recolors swatches <strong>and</strong> the mini-dashboard for deut/prot/trit.</li><li>Mini-dashboard repaints from the palette.</li><li>Theme JSON / CSS / JSON / PNG export the three palettes; Theme JSON still imports into Power BI.</li><li>Inline self-check passes (new count shown in footer + console); no console errors.</li><li>Live site updated; installed PWA picks up the new version.</li></ul>
+<h2>7. Risks / notes</h2>
+<ul><li><strong>Wrong OKLab / CVD constants</strong> — silent color error. Mitigation: canonical sources + round-trip</li></ul>
+<p>self-check gate (§4.5). This is the single biggest correctness risk.</p>
+<ul><li><strong>Equal-L categorical muddiness</strong> at extreme anchor lightness — mitigated by the L zig-zag (§4.2).</li><li><strong>Per-pixel wheel render cost</strong> — cache the canvas image, redraw only on lightness change.</li><li><strong>PWA staleness</strong> — must bump <code>CACHE</code> in <code>sw.js</code>; the worker is already network-first for HTML,</li></ul>
+<p>so a normal reload picks up updates.</p>
+<ul><li>Keep it dependency-free and single-file, matching the tool's existing ethos.</li></ul>
+</article>
+</div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en">it
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -126,6 +126,21 @@
   .ctl select{width:100%;border:1px solid var(--line);border-radius:9px;padding:6px 8px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
   .anchor-row{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center}
   .anchor-chip{height:44px;border-radius:10px;border:1px solid rgba(0,0,0,.12)}
+  .saved-list{display:grid;gap:8px;margin-top:10px}
+  .saved-empty{font-size:12px;color:var(--muted)}
+  .saved-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:7px;background:var(--card)}
+  .saved-swatch{width:28px;height:28px;border-radius:7px;border:1px solid rgba(0,0,0,.12)}
+  .saved-name{font-size:12px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .saved-meta{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .mini-btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;padding:4px 7px;font-size:11px;cursor:pointer}
+  .mini-btn:hover{border-color:#cfd3da}
+  .report{display:grid;gap:8px;margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+  .report-row{display:grid;grid-template-columns:86px minmax(0,1fr);gap:8px;align-items:start;font-size:12px}
+  .report-row b{font-size:11px;text-transform:uppercase;letter-spacing:.02em;color:var(--muted)}
+  .report-chip{display:inline-flex;align-items:center;gap:5px;margin:0 5px 5px 0;border:1px solid var(--line);border-radius:999px;padding:2px 7px;font-family:var(--mono);font-size:11px}
+  .report-dot{width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
+  .report-warn{color:#8a5a00}
+  .report-ok{color:#177245}
 
   /* palette rows */
   .prow{margin-top:16px}
@@ -310,6 +325,14 @@
         <button class="btn ghost" id="anchorReset">Reset</button>
       </div>
       <p class="hint">Type a HEX to design without a screenshot, or pick one on the <b>Pick</b> tab.</p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost" id="savePalette">Save palette</button>
+        <button class="btn ghost" id="copyShareLink">Copy link</button>
+      </div>
+      <div class="grp">
+        <h3>Saved palettes</h3>
+        <div class="saved-list" id="savedPalettes"><span class="saved-empty">Saved palettes stay on this device.</span></div>
+      </div>
     </div>
   </section>
 
@@ -321,6 +344,7 @@
         <button class="btn ghost" data-sexport="css">Copy CSS</button>
         <button class="btn ghost" data-sexport="json">Copy JSON</button>
         <button class="btn ghost" data-sexport="theme">Theme JSON</button>
+        <button class="btn ghost" data-sexport="report">Report</button>
         <button class="btn ghost" data-sexport="png">Export PNG</button>
       </div>
     </div>
@@ -357,6 +381,7 @@
         </div>
       </div>
       <p class="hint" id="cvdNote">Badges show the WCAG ratio of each swatch against the chosen background.</p>
+      <div class="report" id="accessReport"></div>
     </div>
   </section>
 
@@ -1039,6 +1064,9 @@ const S = {
   n:{cat:5,seq:5,div:7},
   bg:'#FFFFFF', cvd:'off'
 };
+const STORAGE_KEY = 'dashboard-palette-v2';
+let savedPalettes = [];
+let suppressHash = false;
 // Outer rim of the wheel in OKLCH chroma. sRGB can't reach 0.37 at most
 // lightnesses, so a smaller rim keeps the usable area large; anything beyond
 // the gamut is still drawn, dimmed, rather than silently faked.
@@ -1068,6 +1096,115 @@ function setAnchor(rgb,{silent}={}){
   if(!silent) $('#anchorHex').value=hex;
   if(!$('#view-studio').hidden) renderStudio();
 }
+
+function serializeStudioState(){
+  return {
+    anchor:Color.rgbToHex(S.anchor).replace('#',''),
+    rule:S.rule,
+    L:Math.round(S.L*100),
+    rot:Math.round(S.rotOffset),
+    chroma:+S.chromaScale.toFixed(3),
+    cat:S.n.cat,
+    seq:S.n.seq,
+    div:S.n.div,
+    bg:S.bg==='#FFFFFF'?'light':'dark',
+    cvd:S.cvd
+  };
+}
+function applyStudioState(state,{render}={}){
+  if(!state) return;
+  const hex=String(state.anchor||'').replace('#','');
+  if(/^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(hex)) S.anchor=Color.hexToRgb(hex);
+  if(Color.HARMONY[state.rule]) S.rule=state.rule;
+  if(Number.isFinite(+state.L)) S.L=Math.min(0.82,Math.max(0.42,+state.L/100));
+  if(Number.isFinite(+state.rot)) S.rotOffset=((+state.rot)%360+360)%360;
+  if(Number.isFinite(+state.chroma)) S.chromaScale=Math.min(8,Math.max(0.15,+state.chroma));
+  ['cat','seq','div'].forEach(k=>{
+    if(Number.isFinite(+state[k])){
+      const [lo,hi]=LIMITS[k];
+      S.n[k]=Math.max(lo,Math.min(hi,Math.round(+state[k])));
+    }
+  });
+  S.bg=state.bg==='dark'||state.bg==='#1F2430'?'#1F2430':'#FFFFFF';
+  if(['off','deut','prot','trit'].includes(state.cvd)) S.cvd=state.cvd;
+  $('#wRule').value=S.rule;
+  $('#wLight').value=Math.round(S.L*100);
+  $('#bgSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.bg===S.bg)));
+  $('#cvdSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cvd===S.cvd)));
+  $('#anchorHex').value=Color.rgbToHex(S.anchor);
+  $('#anchorChip').style.background=Color.rgbToHex(S.anchor);
+  if(render) renderStudio();
+}
+function stateToParams(state){
+  const p=new URLSearchParams();
+  Object.entries(state).forEach(([k,v])=>p.set(k,v));
+  return p.toString();
+}
+function updateStudioHash(){
+  if(suppressHash || $('#view-studio').hidden) return;
+  const url = '#studio?'+stateToParams(serializeStudioState());
+  history.replaceState(null,'',url);
+}
+function readStudioHash(){
+  if(!location.hash.startsWith('#studio')) return null;
+  const q=location.hash.split('?')[1]||'';
+  const params=new URLSearchParams(q);
+  return Object.fromEntries(params.entries());
+}
+function loadSavedPalettes(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    savedPalettes=raw?JSON.parse(raw):[];
+    if(!Array.isArray(savedPalettes)) savedPalettes=[];
+  }catch(_){savedPalettes=[];}
+}
+function persistSavedPalettes(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(savedPalettes.slice(0,24)));}catch(_){}
+}
+function saveStudioPalette(){
+  const state=serializeStudioState();
+  const name=`${Color.rgbToHex(S.anchor)} · ${S.rule}`;
+  const item={id:Date.now().toString(36),name,state};
+  savedPalettes=[item,...savedPalettes.filter(p=>JSON.stringify(p.state)!==JSON.stringify(state))].slice(0,24);
+  persistSavedPalettes();
+  renderSavedPalettes();
+  flash('Palette saved on this device.');
+}
+function renderSavedPalettes(){
+  const box=$('#savedPalettes');
+  box.innerHTML='';
+  if(!savedPalettes.length){
+    box.innerHTML='<span class="saved-empty">Saved palettes stay on this device.</span>';
+    return;
+  }
+  savedPalettes.forEach(item=>{
+    const el=document.createElement('div');
+    el.className='saved-item';
+    const hex='#'+item.state.anchor;
+    el.innerHTML=`<span class="saved-swatch" style="background:${hex}"></span>`+
+      `<span><span class="saved-name">${item.name}</span><br><span class="saved-meta">${item.state.cat}/${item.state.seq}/${item.state.div} · ${item.state.rule}</span></span>`+
+      `<span class="row"><button class="mini-btn" data-load="${item.id}">Load</button><button class="mini-btn" data-delete="${item.id}">Delete</button></span>`;
+    box.appendChild(el);
+  });
+}
+$('#savedPalettes').addEventListener('click',e=>{
+  const load=e.target.closest('[data-load]'), del=e.target.closest('[data-delete]');
+  if(load){
+    const item=savedPalettes.find(p=>p.id===load.dataset.load);
+    if(item) applyStudioState(item.state,{render:true});
+  }
+  if(del){
+    savedPalettes=savedPalettes.filter(p=>p.id!==del.dataset.delete);
+    persistSavedPalettes();
+    renderSavedPalettes();
+  }
+});
+$('#savePalette').addEventListener('click',saveStudioPalette);
+$('#copyShareLink').addEventListener('click',()=>{
+  updateStudioHash();
+  copyText(location.href);
+  flash('Share link copied.');
+});
 $('#anchorHex').addEventListener('input',e=>{
   const v=e.target.value.trim();
   if(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) setAnchor(Color.hexToRgb(v),{silent:true});
@@ -1243,6 +1380,45 @@ function fillStrip(id,list){
   });
 }
 
+function colorDistance(a,b){
+  return Math.hypot(a.r-b.r,a.g-b.g,a.b-b.b);
+}
+function conflictWarnings(list){
+  const warnings=[];
+  ['deut','prot','trit'].forEach(kind=>{
+    for(let i=0;i<list.length;i++) for(let j=i+1;j<list.length;j++){
+      const a=Color.simulateCVD(list[i],kind), b=Color.simulateCVD(list[j],kind);
+      if(colorDistance(a,b)<42){
+        warnings.push({kind,a:i+1,b:j+1,hexA:Color.rgbToHex(list[i]),hexB:Color.rgbToHex(list[j])});
+      }
+    }
+  });
+  return warnings;
+}
+function contrastSummary(list){
+  const bg=Color.hexToRgb(S.bg);
+  return list.map((rgb,i)=>{
+    const ratio=Color.contrastRatio(rgb,bg);
+    return {i:i+1,hex:Color.rgbToHex(rgb),ratio,level:ratio>=7?'AAA':ratio>=4.5?'AA':ratio>=3?'AA Large':'Fail'};
+  });
+}
+function renderAccessibilityReport(p){
+  const rows=[['cat','Categorical',p.cat],['seq','Sequential',p.seq],['div','Diverging',p.div]];
+  const contrast=rows.map(([_,label,list])=>{
+    const fails=contrastSummary(list).filter(x=>x.level==='Fail').length;
+    const large=contrastSummary(list).filter(x=>x.level==='AA Large').length;
+    return `<span class="report-chip"><span>${label}</span> ${fails?`${fails} fail`:large?`${large} large-only`:'AA+'}</span>`;
+  }).join('');
+  const conflicts=conflictWarnings(p.cat);
+  const conflictText=conflicts.length
+    ? conflicts.slice(0,6).map(w=>`<span class="report-chip report-warn">${w.kind}: ${w.hexA} / ${w.hexB}</span>`).join('')+
+      (conflicts.length>6?`<span class="report-chip report-warn">+${conflicts.length-6} more</span>`:'')
+    : '<span class="report-chip report-ok">No categorical CVD conflicts detected</span>';
+  $('#accessReport').innerHTML =
+    `<div class="report-row"><b>Contrast</b><span>${contrast}</span></div>`+
+    `<div class="report-row"><b>CVD conflicts</b><span>${conflictText}</span></div>`;
+}
+
 /* ---- mini dashboard ---- */
 const BARS=[78,54,91,42,66], LINE_A=[30,42,38,55,61,72], LINE_B=[62,50,58,41,47,36];
 // spread so each row lands in its own bin of the ramp, whatever its length
@@ -1293,12 +1469,14 @@ function renderStudio(){
   if(document.activeElement!==$('#anchorHex')) $('#anchorHex').value=Color.rgbToHex(S.anchor);
   drawWheel();
   fillStrip('#s-cat',p.cat); fillStrip('#s-seq',p.seq); fillStrip('#s-div',p.div);
+  renderAccessibilityReport(p);
   renderMini(p);
   const names={deut:'deuteranopia',prot:'protanopia',trit:'tritanopia'};
   $('#cvdNote').innerHTML = S.cvd==='off'
     ? `Badges show each swatch's WCAG ratio against the chosen background.`
     : `Showing <b>${names[S.cvd]}</b> — swatches and the preview are simulated (Viénot 1999). `+
       `WCAG badges still describe the <b>real</b> colours.`;
+  updateStudioHash();
 }
 
 /* ---- studio exports ---- */
@@ -1315,13 +1493,40 @@ function sExportTheme(){
   // Same shape the Pick tab exports (dataColors is what BI tools import), grown
   // with named sequential/diverging arrays that importers ignore harmlessly.
   const cat=sHexes('cat');
+  const div=sHexes('div');
+  const seq=sHexes('seq');
   return JSON.stringify({
     name:`Studio ${Color.rgbToHex(S.anchor)}`,
     dataColors:cat,
     background:S.bg, foreground:S.bg==='#FFFFFF'?'#1F2430':'#FFFFFF',
     tableAccent:cat[0]||'#2596BE',
-    sequential:sHexes('seq'), diverging:sHexes('div')
+    good:sHexes('cat')[0]||'#177245',
+    neutral:sHexes('div')[Math.floor(sHexes('div').length/2)]||'#6B7280',
+    bad:sHexes('cat')[2]||sHexes('cat')[0]||'#B42318',
+    minimum:sHexes('seq')[0]||'#EAF6FA',
+    center:sHexes('div')[Math.floor(sHexes('div').length/2)]||'#F6F7F9',
+    maximum:sHexes('seq')[sHexes('seq').length-1]||'#0F3F4F',
+    sequential:seq, diverging:div
   },null,2);
+}
+function sAccessibilityReport(){
+  const p=LAST||studioPalettes();
+  const lines=[
+    `Accessibility report for ${Color.rgbToHex(S.anchor)}`,
+    `Rule: ${S.rule}`,
+    `Background: ${S.bg}`,
+    ''
+  ];
+  [['Categorical',p.cat],['Sequential',p.seq],['Diverging',p.div]].forEach(([label,list])=>{
+    lines.push(label);
+    contrastSummary(list).forEach(x=>lines.push(`- ${x.hex}: ${x.ratio.toFixed(2)}:1 vs ${S.bg} (${x.level})`));
+    lines.push('');
+  });
+  const warnings=conflictWarnings(p.cat);
+  lines.push('Colorblind conflict warnings');
+  if(!warnings.length) lines.push('- None detected for categorical colors.');
+  warnings.forEach(w=>lines.push(`- ${w.kind}: ${w.hexA} and ${w.hexB} may be hard to distinguish.`));
+  return lines.join('\n');
 }
 function sExportPNG(){
   const rows=[['Categorical',sHexes('cat')],['Sequential',sHexes('seq')],['Diverging',sHexes('div')]];
@@ -1348,7 +1553,7 @@ function sExportPNG(){
 document.querySelectorAll('[data-sexport]').forEach(b=>b.addEventListener('click',()=>{
   const kind=b.dataset.sexport;
   if(kind==='png'){sExportPNG();return;}
-  const map={css:['CSS variables',sExportCSS()],json:['JSON',sExportJSON()],theme:['Theme JSON',sExportTheme()]};
+  const map={css:['CSS variables',sExportCSS()],json:['JSON',sExportJSON()],theme:['Theme JSON',sExportTheme()],report:['Accessibility report',sAccessibilityReport()]};
   const [title,text]=map[kind];
   $('#dlgTitle').textContent='Export · Studio '+title; $('#dlgText').value=text;
   dlg.showModal();
@@ -1359,6 +1564,22 @@ S.L=Math.min(0.82,Math.max(0.42,Color.srgbToOklch(S.anchor).L));
 $('#wLight').value=Math.round(S.L*100);
 $('#anchorChip').style.background=Color.rgbToHex(S.anchor);
 $('#anchorHex').value=Color.rgbToHex(S.anchor);
+loadSavedPalettes();
+renderSavedPalettes();
+const initialStudioHash=readStudioHash();
+if(initialStudioHash){
+  applyStudioState(initialStudioHash,{render:false});
+  showTab('studio');
+}
+window.addEventListener('hashchange',()=>{
+  const state=readStudioHash();
+  if(!state) return;
+  suppressHash=true;
+  applyStudioState(state,{render:false});
+  showTab('studio');
+  suppressHash=false;
+  renderStudio();
+});
 
 /* ---- tiny toast ---- */
 let toastT;

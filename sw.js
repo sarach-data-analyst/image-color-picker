@@ -3,7 +3,7 @@
      fall back to cache only when offline. (Prevents stale pages after a deploy.)
    - Other same-origin assets (icons, manifest): stale-while-revalidate.
    Bump CACHE when you change any shell file. */
-const CACHE = 'color-picker-v4';
+const CACHE = 'color-picker-v5';
 const SHELL = [
   './',
   './index.html',
